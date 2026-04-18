@@ -66,6 +66,20 @@ jobs:
             '{generated_at: $generated_at, repos: $repos}' \
             > gh-pages/public/fleet.json
 
+          # Write a minimal index.html so the Pages root URL resolves.
+          # GitHub Pages requires an index.html at the branch root.
+          cat > gh-pages/index.html <<'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>CI Health Dashboard</title></head>
+<body>
+<h1>CI Health Dashboard</h1>
+<p>Fleet snapshot: <a href="public/fleet.json">public/fleet.json</a></p>
+<p><em>Data is updated every 30 minutes by the snapshot workflow.</em></p>
+</body>
+</html>
+HTMLEOF
+
           REPO_COUNT=$(echo "$REPOS_JSON" | jq 'length')
           echo "::notice::Fleet snapshot: ${REPO_COUNT} repo(s) included."
           echo "repo_count=$REPO_COUNT" >> "$GITHUB_OUTPUT"

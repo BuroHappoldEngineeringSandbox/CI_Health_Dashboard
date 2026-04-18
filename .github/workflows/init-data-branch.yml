@@ -75,8 +75,29 @@ jobs:
               -f encoding="base64" \
               --jq '.sha')
 
-            TREE_SHA=$(jq -nc --arg sha "$BLOB_SHA" \
-              '{"tree":[{"path":"public/fleet.json","mode":"100644","type":"blob","sha":$sha}]}' | \
+            INDEX_CONTENT=$(cat <<'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>CI Health Dashboard</title></head>
+<body>
+<h1>CI Health Dashboard</h1>
+<p>Fleet snapshot: <a href="public/fleet.json">public/fleet.json</a></p>
+<p><em>Data is updated every 30 minutes by the snapshot workflow.</em></p>
+</body>
+</html>
+HTMLEOF
+)
+            INDEX_B64=$(echo "$INDEX_CONTENT" | base64 -w0)
+            INDEX_BLOB_SHA=$(gh api -X POST "repos/${REPO}/git/blobs" \
+              -f content="$INDEX_B64" \
+              -f encoding="base64" \
+              --jq '.sha')
+
+            TREE_SHA=$(jq -nc --arg fleet_sha "$BLOB_SHA" --arg index_sha "$INDEX_BLOB_SHA" \
+              '{"tree":[
+                {"path":"public/fleet.json","mode":"100644","type":"blob","sha":$fleet_sha},
+                {"path":"index.html","mode":"100644","type":"blob","sha":$index_sha}
+              ]}' | \
               gh api -X POST "repos/${REPO}/git/trees" --input - --jq '.sha')
 
             COMMIT_SHA=$(gh api -X POST "repos/${REPO}/git/commits" \
