@@ -27,14 +27,15 @@ jobs:
         id: validate
         shell: bash
         env:
-          REPO:   ${{ github.event.client_payload.repo }}
-          RUN_ID: ${{ github.event.client_payload.run_id }}
+          REPOSITORY: ${{ github.event.client_payload.repository }}
+          RUN_ID:     ${{ github.event.client_payload.run_id }}
         run: |
           set -euo pipefail
 
           # Guard against path traversal or injection via malformed payloads.
-          if [[ ! "$REPO" =~ ^[A-Za-z0-9_.-]+$ ]]; then
-            echo "::error::Invalid repo name in payload: '${REPO}'"
+          # repository is "org/repo"; extract just the repo name for use as a filesystem path.
+          if [[ ! "$REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::Invalid repository in payload: '${REPOSITORY}'"
             exit 1
           fi
           if [[ ! "$RUN_ID" =~ ^[0-9]+$ ]]; then
@@ -42,6 +43,7 @@ jobs:
             exit 1
           fi
 
+          REPO=$(echo "$REPOSITORY" | cut -d'/' -f2)
           echo "repo=$REPO"     >> "$GITHUB_OUTPUT"
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
 
