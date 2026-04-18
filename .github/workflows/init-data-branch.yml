@@ -75,18 +75,7 @@ jobs:
               -f encoding="base64" \
               --jq '.sha')
 
-            INDEX_CONTENT=$(cat <<'HTMLEOF'
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><title>CI Health Dashboard</title></head>
-<body>
-<h1>CI Health Dashboard</h1>
-<p>Fleet snapshot: <a href="public/fleet.json">public/fleet.json</a></p>
-<p><em>Data is updated every 30 minutes by the snapshot workflow.</em></p>
-</body>
-</html>
-HTMLEOF
-)
+            INDEX_CONTENT=$(printf '<!DOCTYPE html>\n<html lang="en">\n<head><meta charset="UTF-8"><title>CI Health Dashboard</title></head>\n<body>\n<h1>CI Health Dashboard</h1>\n<p>Fleet snapshot: <a href="public/fleet.json">public/fleet.json</a></p>\n<p><em>Data is updated every 30 minutes by the snapshot workflow.</em></p>\n</body>\n</html>\n')
             INDEX_B64=$(echo "$INDEX_CONTENT" | base64 -w0)
             INDEX_BLOB_SHA=$(gh api -X POST "repos/${REPO}/git/blobs" \
               -f content="$INDEX_B64" \
