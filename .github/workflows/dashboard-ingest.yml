@@ -59,20 +59,44 @@ jobs:
           PAYLOAD: ${{ toJSON(github.event.client_payload) }}
           REPO:    ${{ steps.validate.outputs.repo }}
           RUN_ID:  ${{ steps.validate.outputs.run_id }}
+          TRIGGER: ${{ github.event.client_payload.trigger }}
         run: |
           set -euo pipefail
 
           YEAR=$(date -u +"%Y")
           MONTH=$(date -u +"%m")
 
-          # Individual run record — one file per run, retained for trend analysis.
+          # ── Per-run history (trigger-agnostic) ─────────────────────────────
+          # One file per run — retained permanently for trend analysis.
           RUN_DIR="data/runs/${REPO}/${YEAR}/${MONTH}"
           mkdir -p "$RUN_DIR"
           echo "$PAYLOAD" | jq '.' > "${RUN_DIR}/${RUN_ID}.json"
 
-          # Latest status per repo — overwritten on every ingest; snapshot reads from here.
-          mkdir -p data/latest
-          echo "$PAYLOAD" | jq '.' > "data/latest/${REPO}.json"
+          # ── Authoritative latest-state (split by trigger type) ─────────────
+          # post-merge runs (push to develop/main) → data/branch/{repo}.json
+          #   These are the source of truth for fleet health.
+          # PR runs → data/pr/{repo}.json
+          #   Fallback source; used only when no branch record exists yet.
+          #
+          # This split prevents a PR run from silently overwriting a post-merge
+          # health record — the two signals are stored and queried independently.
+          case "$TRIGGER" in
+            push|workflow_dispatch)
+              mkdir -p data/branch
+              echo "$PAYLOAD" | jq '.' > "data/branch/${REPO}.json"
+              ;;
+            pull_request|pull_request_target)
+              mkdir -p data/pr
+              echo "$PAYLOAD" | jq '.' > "data/pr/${REPO}.json"
+              ;;
+            *)
+              # Unknown trigger — write to branch as a safe default so the record
+              # is not silently dropped, but log a notice for visibility.
+              echo "::notice::Unrecognised trigger '${TRIGGER}' for ${REPO} — writing to data/branch/."
+              mkdir -p data/branch
+              echo "$PAYLOAD" | jq '.' > "data/branch/${REPO}.json"
+              ;;
+          esac
 
       - name: Commit and push
         shell: bash
