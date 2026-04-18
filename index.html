@@ -1,9 +1,382 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>CI Health Dashboard</title></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CI Health Dashboard</title>
+  <style>
+    :root {
+      --color-success:      #2da44e;
+      --color-failure:      #cf222e;
+      --color-unknown:      #6e7781;
+      --color-bg:           #ffffff;
+      --color-surface:      #f6f8fa;
+      --color-border:       #d0d7de;
+      --color-text:         #1f2328;
+      --color-text-muted:   #656d76;
+      --border-radius:      6px;
+      --font:               -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      --font-mono:          ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--color-text);
+      background: var(--color-bg);
+      line-height: 1.5;
+    }
+
+    /* ── Summary bar ──────────────────────────────────────────────────── */
+    .summary-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .summary-bar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      flex: 1;
+      white-space: nowrap;
+    }
+
+    .summary-counts {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .summary-count {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-success { background: var(--color-success); }
+    .dot-failure { background: var(--color-failure); }
+    .dot-unknown { background: var(--color-unknown); }
+
+    .freshness {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Fleet container ──────────────────────────────────────────────── */
+    .fleet {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* ── Repo card ────────────────────────────────────────────────────── */
+    .card {
+      border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-unknown);
+      border-radius: var(--border-radius);
+      background: var(--color-bg);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card.status-success { border-left-color: var(--color-success); }
+    .card.status-failure { border-left-color: var(--color-failure); }
+
+    /* ── Card identity ────────────────────────────────────────────────── */
+    .card-identity {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .card-identity a {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--color-text);
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-identity a:hover { text-decoration: underline; }
+
+    /* ── Maturity badge ───────────────────────────────────────────────── */
+    .badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 7px;
+      border-radius: 20px;
+      border: 1px solid;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-beta      { color: #0969da; border-color: #54aeff66; background: #ddf4ff; }
+    .badge-alpha     { color: #9a6700; border-color: #d4a72c66; background: #fff8c5; }
+    .badge-prototype { color: #6e7781; border-color: #d0d7de;   background: #f6f8fa; }
+
+    /* ── Job pills ────────────────────────────────────────────────────── */
+    .job-pills {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      text-decoration: none;
+      min-width: 68px;
+      text-align: center;
+    }
+
+    .pill-success {
+      color: #1a7f37;
+      background: #dafbe1;
+      border-color: #2da44e;
+    }
+
+    .pill-failure {
+      color: #ffffff;
+      background: var(--color-failure);
+      border-color: var(--color-failure);
+    }
+
+    .pill-skipped {
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+      border-color: var(--color-border);
+      font-style: italic;
+    }
+
+    .pill-unknown {
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+      border-color: var(--color-border);
+    }
+
+    a.pill:hover { opacity: 0.8; }
+
+    /* ── Card meta (timestamp, run link) ──────────────────────────────── */
+    .card-meta {
+      flex-shrink: 0;
+      text-align: right;
+      font-size: 12px;
+      color: var(--color-text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      min-width: 90px;
+    }
+
+    .card-meta a {
+      color: var(--color-text-muted);
+      text-decoration: none;
+    }
+
+    .card-meta a:hover { text-decoration: underline; color: var(--color-text); }
+
+    .trigger-label {
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+
+    /* ── Empty / error states ─────────────────────────────────────────── */
+    .state-message {
+      text-align: center;
+      padding: 56px 24px;
+      color: var(--color-text-muted);
+    }
+
+    .state-message h2 { font-size: 16px; font-weight: 600; color: var(--color-text); }
+    .state-message p  { margin-top: 6px; font-size: 13px; }
+  </style>
+</head>
 <body>
-<h1>CI Health Dashboard</h1>
-<p>Fleet snapshot: <a href="public/fleet.json">public/fleet.json</a></p>
-<p><em>Data is updated every 30 minutes by the snapshot workflow.</em></p>
+
+<header class="summary-bar">
+  <h1>CI Health Dashboard</h1>
+  <div class="summary-counts" id="summary-counts"></div>
+  <span class="freshness" id="freshness"></span>
+</header>
+
+<main class="fleet" id="fleet">
+  <div class="state-message"><h2>Loading…</h2></div>
+</main>
+
+<script>
+  // Fixed job display order — columns are always consistent across cards.
+  const JOB_ORDER = ['format', 'compliance', 'dataset', 'build', 'unit-tests'];
+
+  function relativeTime(iso) {
+    if (!iso) return '—';
+    const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (s < 60)    return s + 's ago';
+    if (s < 3600)  return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+  }
+
+  function repoName(repository) {
+    return repository ? repository.split('/').pop() : '—';
+  }
+
+  function repoUrl(repository) {
+    return 'https://github.com/' + (repository || '');
+  }
+
+  function pillClass(result) {
+    switch (result) {
+      case 'success':   return 'pill-success';
+      case 'failure':   return 'pill-failure';
+      case 'skipped':   return 'pill-skipped';
+      case 'cancelled': return 'pill-skipped';
+      default:          return 'pill-unknown';
+    }
+  }
+
+  function badgeClass(maturity) {
+    switch ((maturity || '').toLowerCase()) {
+      case 'beta':      return 'badge-beta';
+      case 'alpha':     return 'badge-alpha';
+      default:          return 'badge-prototype';
+    }
+  }
+
+  function statusClass(overall) {
+    if (overall === 'success') return 'status-success';
+    if (overall === 'failure') return 'status-failure';
+    return '';
+  }
+
+  function renderCard(repo) {
+    const pills = JOB_ORDER.map(job => {
+      const result = (repo.jobs || {})[job] || 'unknown';
+      const cls    = pillClass(result);
+      // Failing pills link directly to the run so one click reaches the evidence.
+      if (result === 'failure' && repo.run_url) {
+        return `<a class="pill ${cls}" href="${repo.run_url}" target="_blank" rel="noopener noreferrer">${job}</a>`;
+      }
+      return `<span class="pill ${cls}">${job}</span>`;
+    }).join('');
+
+    const badge = repo.maturity
+      ? `<span class="badge ${badgeClass(repo.maturity)}">${(repo.maturity).toLowerCase()}</span>`
+      : '';
+
+    const trigger = repo.trigger === 'pull_request' ? 'PR' : (repo.trigger || '');
+
+    const runLink = repo.run_url
+      ? `<a href="${repo.run_url}" target="_blank" rel="noopener noreferrer">view run ↗</a>`
+      : '';
+
+    return `
+      <div class="card ${statusClass(repo.overall)}">
+        <div class="card-identity">
+          <a href="${repoUrl(repo.repository)}" target="_blank" rel="noopener noreferrer">${repoName(repo.repository)}</a>
+          ${badge}
+        </div>
+        <div class="job-pills">${pills}</div>
+        <div class="card-meta">
+          <span title="${repo.timestamp || ''}">${relativeTime(repo.timestamp)}</span>
+          <span>${runLink}${trigger ? `<span class="trigger-label"> · ${trigger}</span>` : ''}</span>
+        </div>
+      </div>`;
+  }
+
+  function renderSummary(repos, generatedAt) {
+    const passing = repos.filter(r => r.overall === 'success').length;
+    const failing = repos.filter(r => r.overall === 'failure').length;
+    const unknown = repos.length - passing - failing;
+
+    let html = `
+      <span class="summary-count"><span class="dot dot-success"></span>${passing} passing</span>
+      <span class="summary-count"><span class="dot dot-failure"></span>${failing} failing</span>`;
+    if (unknown > 0) {
+      html += `<span class="summary-count"><span class="dot dot-unknown"></span>${unknown} unknown</span>`;
+    }
+    document.getElementById('summary-counts').innerHTML = html;
+
+    const el = document.getElementById('freshness');
+    if (generatedAt) {
+      el.textContent = 'Updated ' + relativeTime(generatedAt);
+      el.title = generatedAt;
+    }
+  }
+
+  async function init() {
+    const fleet = document.getElementById('fleet');
+    try {
+      const resp = await fetch('public/fleet.json');
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      const repos = Array.isArray(data.repos) ? data.repos : [];
+
+      renderSummary(repos, data.generated_at);
+
+      if (repos.length === 0) {
+        fleet.innerHTML = `
+          <div class="state-message">
+            <h2>No data yet</h2>
+            <p>Waiting for the first CI run to report in. Re-run any PR on a repo using the orchestrator to trigger ingest.</p>
+          </div>`;
+        return;
+      }
+
+      // Failures first, then alphabetical by repo name.
+      repos.sort((a, b) => {
+        const rank = { failure: 0, success: 1 };
+        const diff = (rank[a.overall] ?? 2) - (rank[b.overall] ?? 2);
+        if (diff !== 0) return diff;
+        return (a.repository || '').localeCompare(b.repository || '');
+      });
+
+      fleet.innerHTML = repos.map(renderCard).join('');
+
+    } catch (err) {
+      fleet.innerHTML = `
+        <div class="state-message">
+          <h2>Could not load fleet data</h2>
+          <p>${err.message}</p>
+        </div>`;
+    }
+  }
+
+  init();
+</script>
+
 </body>
 </html>
