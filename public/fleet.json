@@ -1,1 +1,23 @@
-{"generated_at":null,"repos":[]}
+{
+  "generated_at": "2026-04-18T23:08:23Z",
+  "repos": [
+    {
+      "jobs": {
+        "build": "success",
+        "compliance": "success",
+        "dataset": "skipped",
+        "format": "success",
+        "unit-tests": "failure"
+      },
+      "maturity": "beta",
+      "overall": "failure",
+      "ref": "7/merge",
+      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
+      "run_id": "24615822377",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24615822377",
+      "sha": "6ac492d628a39e7e312b7ca1b7e2a5ba0416ad77",
+      "timestamp": "2026-04-18T23:02:09Z",
+      "trigger": "pull_request"
+    }
+  ]
+}
