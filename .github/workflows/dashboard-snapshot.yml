@@ -24,8 +24,8 @@ jobs:
       contents: write  # push to gh-pages branch
 
     steps:
-      # Check out both branches into named subdirectories so we can read from one
-      # and write to the other without switching branches.
+      # Check out both data branches plus main (source of index.html) into named
+      # subdirectories so we can read from one and write to another without switching.
       - name: Checkout dashboard-data
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -38,6 +38,13 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
+          fetch-depth: 1
+
+      - name: Checkout source (index.html)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: main
+          path: source
           fetch-depth: 1
 
       - name: Generate fleet snapshot
@@ -55,7 +62,7 @@ jobs:
           # Aggregate all per-repo latest-status files into a single fleet.json.
           if [ -d "$LATEST_DIR" ] && [ -n "$(ls -A "$LATEST_DIR" 2>/dev/null)" ]; then
             REPOS_JSON=$(find "$LATEST_DIR" -name '*.json' -type f | sort | \
-              xargs cat | jq -s 'sort_by(.repo)')
+              xargs cat | jq -s 'sort_by(.repository)')
           else
             REPOS_JSON='[]'
           fi
@@ -66,10 +73,9 @@ jobs:
             '{generated_at: $generated_at, repos: $repos}' \
             > gh-pages/public/fleet.json
 
-          # Write a minimal index.html so the Pages root URL resolves.
-          # GitHub Pages requires an index.html at the branch root.
-          printf '<!DOCTYPE html>\n<html lang="en">\n<head><meta charset="UTF-8"><title>CI Health Dashboard</title></head>\n<body>\n<h1>CI Health Dashboard</h1>\n<p>Fleet snapshot: <a href="public/fleet.json">public/fleet.json</a></p>\n<p><em>Data is updated every 30 minutes by the snapshot workflow.</em></p>\n</body>\n</html>\n' \
-            > gh-pages/index.html
+          # Copy the versioned index.html from main so gh-pages always serves
+          # the latest frontend without a separate deployment step.
+          cp source/index.html gh-pages/index.html
 
           REPO_COUNT=$(echo "$REPOS_JSON" | jq 'length')
           echo "::notice::Fleet snapshot: ${REPO_COUNT} repo(s) included."
@@ -80,7 +86,7 @@ jobs:
           # so the dashboard can render a recent-run timeline without a separate query.
           RUNS_BASE="dashboard-data/data/runs"
 
-          echo "$REPOS_JSON" | jq -r '.[].repo' | while read -r REPO; do
+          echo "$REPOS_JSON" | jq -r '.[].repository | split("/")[1]' | while read -r REPO; do
             LATEST_FILE="${LATEST_DIR}/${REPO}.json"
             [ -f "$LATEST_FILE" ] || continue
 
