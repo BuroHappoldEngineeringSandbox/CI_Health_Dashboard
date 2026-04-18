@@ -1,0 +1,116 @@
+name: Dashboard Snapshot
+
+# Rebuilds the public fleet snapshot from the aggregated data on the dashboard-data
+# branch and publishes it to gh-pages. Runs on a schedule and can be triggered
+# manually to force an immediate refresh.
+#
+# Output: gh-pages/public/fleet.json  — fleet-wide latest status (all repos)
+#         gh-pages/public/repos/*.json — per-repo summary with recent run history
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # every 30 minutes; GitHub may delay up to ~15 min under load
+  workflow_dispatch:
+
+concurrency:
+  group: dashboard-snapshot
+  cancel-in-progress: true  # a newer snapshot supersedes an in-flight one
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write  # push to gh-pages branch
+
+    steps:
+      # Check out both branches into named subdirectories so we can read from one
+      # and write to the other without switching branches.
+      - name: Checkout dashboard-data
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: dashboard-data
+          path: dashboard-data
+          fetch-depth: 0  # full history needed for trend queries
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: gh-pages
+          path: gh-pages
+          fetch-depth: 1
+
+      - name: Generate fleet snapshot
+        id: generate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          mkdir -p gh-pages/public/repos
+
+          LATEST_DIR="dashboard-data/data/latest"
+
+          # ── Fleet overview ──────────────────────────────────────────────────
+          # Aggregate all per-repo latest-status files into a single fleet.json.
+          if [ -d "$LATEST_DIR" ] && [ -n "$(ls -A "$LATEST_DIR" 2>/dev/null)" ]; then
+            REPOS_JSON=$(find "$LATEST_DIR" -name '*.json' -type f | sort | \
+              xargs cat | jq -s 'sort_by(.repo)')
+          else
+            REPOS_JSON='[]'
+          fi
+
+          jq -n \
+            --arg generated_at "$GENERATED_AT" \
+            --argjson repos     "$REPOS_JSON" \
+            '{generated_at: $generated_at, repos: $repos}' \
+            > gh-pages/public/fleet.json
+
+          REPO_COUNT=$(echo "$REPOS_JSON" | jq 'length')
+          echo "::notice::Fleet snapshot: ${REPO_COUNT} repo(s) included."
+          echo "repo_count=$REPO_COUNT" >> "$GITHUB_OUTPUT"
+
+          # ── Per-repo summaries ──────────────────────────────────────────────
+          # For each repo, include the latest status plus the last 30 run records
+          # so the dashboard can render a recent-run timeline without a separate query.
+          RUNS_BASE="dashboard-data/data/runs"
+
+          echo "$REPOS_JSON" | jq -r '.[].repo' | while read -r REPO; do
+            LATEST_FILE="${LATEST_DIR}/${REPO}.json"
+            [ -f "$LATEST_FILE" ] || continue
+
+            # Collect the last 30 run records for this repo, most-recent first.
+            RECENT_RUNS='[]'
+            if [ -d "${RUNS_BASE}/${REPO}" ]; then
+              RECENT_RUNS=$(find "${RUNS_BASE}/${REPO}" -name '*.json' -type f | \
+                sort -r | head -30 | xargs cat | jq -s 'sort_by(.timestamp) | reverse')
+            fi
+
+            jq -n \
+              --arg generated_at   "$GENERATED_AT" \
+              --slurpfile latest   "$LATEST_FILE" \
+              --argjson recent     "$RECENT_RUNS" \
+              '{generated_at: $generated_at, latest: $latest[0], recent_runs: $recent}' \
+              > "gh-pages/public/repos/${REPO}.json"
+          done
+
+      - name: Commit and push snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd gh-pages
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add public/
+
+          if git diff --cached --quiet; then
+            echo "::notice::Snapshot unchanged — no commit needed."
+            exit 0
+          fi
+
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          git commit -m "snapshot: fleet update ${TIMESTAMP}"
+          git push origin gh-pages

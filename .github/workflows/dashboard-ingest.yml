@@ -1,0 +1,103 @@
+name: Dashboard Ingest
+
+# Triggered by repository_dispatch from the emit-health job in each repo's orchestrator.
+# Writes a per-run JSON record to the dashboard-data orphan branch and updates the
+# latest-status file for that repo so the snapshot workflow always has fresh input.
+#
+# Concurrency is serialised (cancel-in-progress: false) to prevent git push conflicts
+# when multiple repos emit health records simultaneously.
+
+on:
+  repository_dispatch:
+    types: [ci-health-run]
+
+concurrency:
+  group: dashboard-data-write
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write  # push to dashboard-data branch
+
+    steps:
+      - name: Validate payload
+        id: validate
+        shell: bash
+        env:
+          REPO:   ${{ github.event.client_payload.repo }}
+          RUN_ID: ${{ github.event.client_payload.run_id }}
+        run: |
+          set -euo pipefail
+
+          # Guard against path traversal or injection via malformed payloads.
+          if [[ ! "$REPO" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::Invalid repo name in payload: '${REPO}'"
+            exit 1
+          fi
+          if [[ ! "$RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid run_id in payload: '${RUN_ID}'"
+            exit 1
+          fi
+
+          echo "repo=$REPO"     >> "$GITHUB_OUTPUT"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout dashboard-data branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: dashboard-data
+          fetch-depth: 1
+
+      - name: Write run record
+        shell: bash
+        env:
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+          REPO:    ${{ steps.validate.outputs.repo }}
+          RUN_ID:  ${{ steps.validate.outputs.run_id }}
+        run: |
+          set -euo pipefail
+
+          YEAR=$(date -u +"%Y")
+          MONTH=$(date -u +"%m")
+
+          # Individual run record — one file per run, retained for trend analysis.
+          RUN_DIR="data/runs/${REPO}/${YEAR}/${MONTH}"
+          mkdir -p "$RUN_DIR"
+          echo "$PAYLOAD" | jq '.' > "${RUN_DIR}/${RUN_ID}.json"
+
+          # Latest status per repo — overwritten on every ingest; snapshot reads from here.
+          mkdir -p data/latest
+          echo "$PAYLOAD" | jq '.' > "data/latest/${REPO}.json"
+
+      - name: Commit and push
+        shell: bash
+        env:
+          REPO:   ${{ steps.validate.outputs.repo }}
+          RUN_ID: ${{ steps.validate.outputs.run_id }}
+        run: |
+          set -euo pipefail
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add data/
+
+          # Exit cleanly on idempotent re-delivery of the same event.
+          if git diff --cached --quiet; then
+            echo "::notice::No changes to commit — likely a duplicate delivery."
+            exit 0
+          fi
+
+          git commit -m "ci: ingest run ${RUN_ID} (${REPO})"
+
+          # Retry up to 3 times to handle rare concurrent-push races.
+          for attempt in 1 2 3; do
+            if git push origin dashboard-data; then
+              break
+            fi
+            echo "::warning::Push attempt ${attempt} failed — rebasing and retrying."
+            git pull --rebase origin dashboard-data
+          done
