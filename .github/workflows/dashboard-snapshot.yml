@@ -9,7 +9,7 @@ name: Dashboard Snapshot
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # every 30 minutes; GitHub may delay up to ~15 min under load
+    - cron: '0 7 * * *'  # once daily at 07:00 UTC; trigger manually via workflow_dispatch when needed sooner
   workflow_dispatch:
 
 concurrency:
