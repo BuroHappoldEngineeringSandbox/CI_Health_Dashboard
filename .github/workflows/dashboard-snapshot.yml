@@ -52,94 +52,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          bash source/src/snapshot/build-fleet.sh
+          echo "repo_count=$(jq '.repos | length' gh-pages/public/fleet.json)" >> "$GITHUB_OUTPUT"
 
-          GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          mkdir -p gh-pages/public/repos
-
-          BRANCH_DIR="dashboard-data/data/branch"
-          PR_DIR="dashboard-data/data/pr"
-          RUNS_BASE="dashboard-data/data/runs"
-
-          # ── Fleet overview ──────────────────────────────────────────────────
-          # Build a de-duplicated set of all known repos (union of branch + pr dirs).
-          ALL_REPOS=$(
-            {
-              [ -d "$BRANCH_DIR" ] && find "$BRANCH_DIR" -name '*.json' -type f \
-                | xargs -r basename -s .json || true
-              [ -d "$PR_DIR"     ] && find "$PR_DIR"     -name '*.json' -type f \
-                | xargs -r basename -s .json || true
-            } | sort -u
-          )
-
-          REPOS_JSON='[]'
-
-          if [ -n "$ALL_REPOS" ]; then
-            FLEET_ENTRIES=()
-            while IFS= read -r REPO; do
-              [ -z "$REPO" ] && continue
-              BRANCH_FILE="${BRANCH_DIR}/${REPO}.json"
-              PR_FILE="${PR_DIR}/${REPO}.json"
-
-              # Branch (post-merge) is authoritative; fall back to PR-time if absent.
-              if [ -f "$BRANCH_FILE" ]; then
-                ENTRY=$(jq -c '. + {"_source":"branch"}' "$BRANCH_FILE")
-              elif [ -f "$PR_FILE" ]; then
-                ENTRY=$(jq -c '. + {"_source":"pr"}' "$PR_FILE")
-              else
-                continue
-              fi
-
-              FLEET_ENTRIES+=("$ENTRY")
-            done <<< "$ALL_REPOS"
-
-            if [ ${#FLEET_ENTRIES[@]} -gt 0 ]; then
-              REPOS_JSON=$(printf '%s\n' "${FLEET_ENTRIES[@]}" | jq -s 'sort_by(.repository)')
-            fi
-          fi
-
-          jq -n \
-            --arg generated_at "$GENERATED_AT" \
-            --argjson repos     "$REPOS_JSON" \
-            '{generated_at: $generated_at, repos: $repos}' \
-            > gh-pages/public/fleet.json
-
-          # Copy the versioned index.html from main so gh-pages always serves
-          # the latest frontend without a separate deployment step.
+      - name: Copy frontend assets to gh-pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Copy the full frontend directory from main so gh-pages always serves
+          # the latest HTML, CSS, and JS without a separate deployment step.
           cp source/index.html gh-pages/index.html
-
-          REPO_COUNT=$(echo "$REPOS_JSON" | jq 'length')
-          echo "::notice::Fleet snapshot: ${REPO_COUNT} repo(s) included."
-          echo "repo_count=$REPO_COUNT" >> "$GITHUB_OUTPUT"
-
-          # ── Per-repo summaries ──────────────────────────────────────────────
-          # Combine branch + PR latest records with the last 30 run records.
-          if [ -n "$ALL_REPOS" ]; then
-          while IFS= read -r REPO; do
-            [ -z "$REPO" ] && continue
-            BRANCH_FILE="${BRANCH_DIR}/${REPO}.json"
-            PR_FILE="${PR_DIR}/${REPO}.json"
-
-            BRANCH_DATA="null"
-            PR_DATA="null"
-            [ -f "$BRANCH_FILE" ] && BRANCH_DATA=$(jq '.' "$BRANCH_FILE")
-            [ -f "$PR_FILE"     ] && PR_DATA=$(jq '.'     "$PR_FILE")
-
-            # Collect the last 30 run records for this repo, most-recent first.
-            RECENT_RUNS='[]'
-            if [ -d "${RUNS_BASE}/${REPO}" ]; then
-              RECENT_RUNS=$(find "${RUNS_BASE}/${REPO}" -name '*.json' -type f | \
-                sort -r | head -30 | xargs cat | jq -s 'sort_by(.timestamp) | reverse')
-            fi
-
-            jq -n \
-              --arg generated_at "$GENERATED_AT" \
-              --argjson branch   "$BRANCH_DATA" \
-              --argjson pr       "$PR_DATA" \
-              --argjson recent   "$RECENT_RUNS" \
-              '{generated_at: $generated_at, branch: $branch, pr: $pr, recent_runs: $recent}' \
-              > "gh-pages/public/repos/${REPO}.json"
-          done <<< "$ALL_REPOS"
-          fi  # end: if [ -n "$ALL_REPOS" ] for per-repo summaries
+          mkdir -p gh-pages/styles gh-pages/scripts
+          cp -r source/src/frontend/styles/. gh-pages/styles/
+          cp -r source/src/frontend/scripts/. gh-pages/scripts/
 
       - name: Commit and push snapshot
         shell: bash
@@ -151,7 +76,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add public/ index.html
+          git add public/ index.html styles/ scripts/
 
           if git diff --cached --quiet; then
             echo "::notice::Snapshot unchanged — no commit needed."

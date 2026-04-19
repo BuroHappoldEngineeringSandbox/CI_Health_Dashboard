@@ -1,0 +1,232 @@
+:root {
+  --color-success:      #2da44e;
+  --color-failure:      #cf222e;
+  --color-unknown:      #6e7781;
+  --color-bg:           #ffffff;
+  --color-surface:      #f6f8fa;
+  --color-border:       #d0d7de;
+  --color-text:         #1f2328;
+  --color-text-muted:   #656d76;
+  --border-radius:      6px;
+  --font:               -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  --font-mono:          ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.5;
+}
+
+/* ── Summary bar ──────────────────────────────────────────────────── */
+.summary-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.summary-bar h1 {
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.summary-counts {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.summary-count {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-success { background: var(--color-success); }
+.dot-failure { background: var(--color-failure); }
+.dot-unknown { background: var(--color-unknown); }
+
+.freshness {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Fleet container ──────────────────────────────────────────────── */
+.fleet {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Repo card ────────────────────────────────────────────────────── */
+.card {
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-unknown);
+  border-radius: var(--border-radius);
+  background: var(--color-bg);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card.status-success { border-left-color: var(--color-success); }
+.card.status-failure { border-left-color: var(--color-failure); }
+
+/* ── Card identity ────────────────────────────────────────────────── */
+.card-identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.card-identity a {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-identity a:hover { text-decoration: underline; }
+
+/* ── Maturity badge ───────────────────────────────────────────────── */
+.badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-beta      { color: #0969da; border-color: #54aeff66; background: #ddf4ff; }
+.badge-alpha     { color: #9a6700; border-color: #d4a72c66; background: #fff8c5; }
+.badge-prototype { color: #6e7781; border-color: #d0d7de;   background: #f6f8fa; }
+
+/* ── Job pills ────────────────────────────────────────────────────── */
+.job-pills {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  text-decoration: none;
+  min-width: 68px;
+  text-align: center;
+}
+
+.pill-success {
+  color: #1a7f37;
+  background: #dafbe1;
+  border-color: #2da44e;
+}
+
+.pill-failure {
+  color: #ffffff;
+  background: var(--color-failure);
+  border-color: var(--color-failure);
+}
+
+.pill-skipped {
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  font-style: italic;
+}
+
+.pill-unknown {
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+a.pill:hover { opacity: 0.8; }
+
+/* ── Card meta (timestamp, run link) ──────────────────────────────── */
+.card-meta {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 90px;
+}
+
+.card-meta a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.card-meta a:hover { text-decoration: underline; color: var(--color-text); }
+
+/* ── Health-source label ──────────────────────────────────────────── */
+.source-label {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.source-label.source-branch {
+  color: #0969da;
+  background: #ddf4ff;
+  border-color: #54aeff66;
+}
+
+/* ── Empty / error states ─────────────────────────────────────────── */
+.state-message {
+  text-align: center;
+  padding: 56px 24px;
+  color: var(--color-text-muted);
+}
+
+.state-message h2 { font-size: 16px; font-weight: 600; color: var(--color-text); }
+.state-message p  { margin-top: 6px; font-size: 13px; }

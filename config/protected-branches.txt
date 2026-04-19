@@ -1,0 +1,17 @@
+# Protected branches — treated as authoritative branch health targets.
+#
+# When emit-health in ci-orchestrator.yml detects a pull_request event whose
+# base_ref matches a branch listed here, it sets ROUTING_TRIGGER=pr-to-branch
+# and DEST_REF=<base_ref>. The dashboard ingest then writes the run record to
+# data/branch/{repo}.json (branch-authoritative path) rather than data/pr/.
+#
+# This means no per-repo on:push caller workflow is needed across the 100+ toolkit
+# repos — the PR merge-commit CI run is treated as sufficient branch truth,
+# given that rulesets enforce no direct pushes for non-admins.
+#
+# To add a new protected branch, append it on a new line.
+# The orchestrator reads this list via the hardcoded case statement in emit-health;
+# update that statement in DevOps_Toolkit/.github/workflows/ci-orchestrator.yml
+# when modifying this file.
+develop
+main
