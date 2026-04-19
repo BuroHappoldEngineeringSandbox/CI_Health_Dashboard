@@ -63,15 +63,20 @@ jobs:
           # ── Fleet overview ──────────────────────────────────────────────────
           # Build a de-duplicated set of all known repos (union of branch + pr dirs).
           ALL_REPOS=$(
-            { [ -d "$BRANCH_DIR" ] && find "$BRANCH_DIR" -name '*.json' -type f | xargs -r basename -s .json; : ; } 2>/dev/null
-            { [ -d "$PR_DIR"     ] && find "$PR_DIR"     -name '*.json' -type f | xargs -r basename -s .json; : ; } 2>/dev/null
-          ) | sort -u
+            {
+              [ -d "$BRANCH_DIR" ] && find "$BRANCH_DIR" -name '*.json' -type f \
+                | xargs -r basename -s .json || true
+              [ -d "$PR_DIR"     ] && find "$PR_DIR"     -name '*.json' -type f \
+                | xargs -r basename -s .json || true
+            } | sort -u
+          )
 
           REPOS_JSON='[]'
 
           if [ -n "$ALL_REPOS" ]; then
             FLEET_ENTRIES=()
             while IFS= read -r REPO; do
+              [ -z "$REPO" ] && continue
               BRANCH_FILE="${BRANCH_DIR}/${REPO}.json"
               PR_FILE="${PR_DIR}/${REPO}.json"
 
@@ -108,7 +113,9 @@ jobs:
 
           # ── Per-repo summaries ──────────────────────────────────────────────
           # Combine branch + PR latest records with the last 30 run records.
+          if [ -n "$ALL_REPOS" ]; then
           while IFS= read -r REPO; do
+            [ -z "$REPO" ] && continue
             BRANCH_FILE="${BRANCH_DIR}/${REPO}.json"
             PR_FILE="${PR_DIR}/${REPO}.json"
 
@@ -132,6 +139,7 @@ jobs:
               '{generated_at: $generated_at, branch: $branch, pr: $pr, recent_runs: $recent}' \
               > "gh-pages/public/repos/${REPO}.json"
           done <<< "$ALL_REPOS"
+          fi  # end: if [ -n "$ALL_REPOS" ] for per-repo summaries
 
       - name: Commit and push snapshot
         shell: bash
