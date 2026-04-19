@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-19T10:25:25Z",
+  "generated_at": "2026-04-19T11:57:18Z",
   "branch": {
     "jobs": {
       "build": "success",
@@ -12,10 +12,10 @@
     "overall": "failure",
     "ref": "develop",
     "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-    "run_id": "24626812768",
-    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24626812768",
-    "sha": "d6f2c7e8ea6fbac994f8c990b4725d0937cc31e9",
-    "timestamp": "2026-04-19T10:23:18Z",
+    "run_id": "24627103116",
+    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24627103116",
+    "sha": "e7cfebf7ef10f95b7a2bcee8c95a87e6e0a9426d",
+    "timestamp": "2026-04-19T10:41:03Z",
     "trigger": "pr-to-branch"
   },
   "pr": {
@@ -37,6 +37,24 @@
     "trigger": "pull_request"
   },
   "recent_runs": [
+    {
+      "jobs": {
+        "build": "success",
+        "compliance": "success",
+        "dataset": "skipped",
+        "format": "success",
+        "unit-tests": "failure"
+      },
+      "maturity": "beta",
+      "overall": "failure",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
+      "run_id": "24627103116",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24627103116",
+      "sha": "e7cfebf7ef10f95b7a2bcee8c95a87e6e0a9426d",
+      "timestamp": "2026-04-19T10:41:03Z",
+      "trigger": "pr-to-branch"
+    },
     {
       "jobs": {
         "build": "success",
