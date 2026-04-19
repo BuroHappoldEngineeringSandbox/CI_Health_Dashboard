@@ -82,9 +82,9 @@ jobs:
 
               # Branch (post-merge) is authoritative; fall back to PR-time if absent.
               if [ -f "$BRANCH_FILE" ]; then
-                ENTRY=$(jq '. + {"_source":"branch"}' "$BRANCH_FILE")
+                ENTRY=$(jq -c '. + {"_source":"branch"}' "$BRANCH_FILE")
               elif [ -f "$PR_FILE" ]; then
-                ENTRY=$(jq '. + {"_source":"pr"}' "$PR_FILE")
+                ENTRY=$(jq -c '. + {"_source":"pr"}' "$PR_FILE")
               else
                 continue
               fi
