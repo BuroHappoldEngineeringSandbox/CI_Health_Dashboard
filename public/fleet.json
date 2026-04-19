@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-19T09:48:25Z",
+  "generated_at": "2026-04-19T10:17:53Z",
   "repos": [
     {
       "jobs": {
@@ -13,10 +13,10 @@
       "overall": "failure",
       "ref": "7/merge",
       "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24616737201",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24616737201",
-      "sha": "7fb5a261cd91fcbd3c664d0a936491a1610405d5",
-      "timestamp": "2026-04-18T23:59:39Z",
+      "run_id": "24626308721",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24626308721",
+      "sha": "3394b1362c52e991f4826189aa04dd52d9b0484c",
+      "timestamp": "2026-04-19T09:56:06Z",
       "trigger": "pull_request",
       "_source": "pr"
     },
