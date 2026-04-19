@@ -73,15 +73,17 @@ jobs:
           echo "$PAYLOAD" | jq '.' > "${RUN_DIR}/${RUN_ID}.json"
 
           # ── Authoritative latest-state (split by trigger type) ─────────────
-          # post-merge runs (push to develop/main) → data/branch/{repo}.json
-          #   These are the source of truth for fleet health.
-          # PR runs → data/pr/{repo}.json
+          # push/workflow_dispatch (direct branch runs) → data/branch/{repo}.json
+          # pr-to-branch (PR against develop/main, run against synthetic merge commit)
+          #   → data/branch/{repo}.json  (treated as branch truth; no per-repo push
+          #     caller needed across 100+ repos — ruleset guarantees no direct pushes)
+          # pull_request (PR against a non-protected branch) → data/pr/{repo}.json
           #   Fallback source; used only when no branch record exists yet.
           #
-          # This split prevents a PR run from silently overwriting a post-merge
-          # health record — the two signals are stored and queried independently.
+          # This split prevents an ephemeral PR run from silently overwriting a
+          # branch health record, while still capturing branch truth from PR merges.
           case "$TRIGGER" in
-            push|workflow_dispatch)
+            push|workflow_dispatch|pr-to-branch)
               mkdir -p data/branch
               echo "$PAYLOAD" | jq '.' > "data/branch/${REPO}.json"
               ;;
