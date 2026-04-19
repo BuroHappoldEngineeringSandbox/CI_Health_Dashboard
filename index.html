@@ -214,6 +214,25 @@
       color: var(--color-text-muted);
     }
 
+    /* ── Health-source label ──────────────────────────────────────────── */
+    .source-label {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .source-label.source-branch {
+      color: #0969da;
+      background: #ddf4ff;
+      border-color: #54aeff66;
+    }
+
     /* ── Empty / error states ─────────────────────────────────────────── */
     .state-message {
       text-align: center;
@@ -297,7 +316,15 @@
       ? `<span class="badge ${badgeClass(repo.maturity)}">${(repo.maturity).toLowerCase()}</span>`
       : '';
 
-    const trigger = repo.trigger === 'pull_request' ? 'PR' : (repo.trigger || '');
+    // _source tells us whether this record came from a post-merge (branch) or PR run.
+    // For branch records, show the ref name (e.g. "develop").
+    // For PR fallback records, show "PR · {ref}" to make the fallback visible.
+    let sourceLabel = '';
+    if (repo._source === 'branch') {
+      sourceLabel = `<span class="source-label source-branch">${repo.ref || 'branch'}</span>`;
+    } else if (repo._source === 'pr') {
+      sourceLabel = `<span class="source-label">PR · ${repo.ref || '?'}</span>`;
+    }
 
     const runLink = repo.run_url
       ? `<a href="${repo.run_url}" target="_blank" rel="noopener noreferrer">view run ↗</a>`
@@ -308,11 +335,12 @@
         <div class="card-identity">
           <a href="${repoUrl(repo.repository)}" target="_blank" rel="noopener noreferrer">${repoName(repo.repository)}</a>
           ${badge}
+          ${sourceLabel}
         </div>
         <div class="job-pills">${pills}</div>
         <div class="card-meta">
           <span title="${repo.timestamp || ''}">${relativeTime(repo.timestamp)}</span>
-          <span>${runLink}${trigger ? `<span class="trigger-label"> · ${trigger}</span>` : ''}</span>
+          <span>${runLink}</span>
         </div>
       </div>`;
   }
