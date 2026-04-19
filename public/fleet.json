@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-19T10:17:53Z",
+  "generated_at": "2026-04-19T10:21:57Z",
   "repos": [
     {
       "jobs": {
@@ -7,16 +7,16 @@
         "compliance": "success",
         "dataset": "skipped",
         "format": "success",
-        "unit-tests": "failure"
+        "unit-tests": "cancelled"
       },
       "maturity": "beta",
       "overall": "failure",
       "ref": "7/merge",
       "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24626308721",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24626308721",
-      "sha": "3394b1362c52e991f4826189aa04dd52d9b0484c",
-      "timestamp": "2026-04-19T09:56:06Z",
+      "run_id": "24626768420",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24626768420",
+      "sha": "5fff0a34bf4c2bce438c140496bbfe7bdf31de3e",
+      "timestamp": "2026-04-19T10:20:33Z",
       "trigger": "pull_request",
       "_source": "pr"
     },
