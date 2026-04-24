@@ -1,0 +1,18 @@
+{
+  "jobs": {
+    "build": "success",
+    "compliance": "skipped",
+    "dataset": "skipped",
+    "format": "skipped",
+    "unit-tests": "success"
+  },
+  "maturity": "beta",
+  "overall": "success",
+  "ref": "develop",
+  "repository": "BuroHappoldEngineeringSandbox/BHoM_Engine",
+  "run_id": "24886268627",
+  "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Engine/actions/runs/24886268627",
+  "sha": "94a31899341a35e1f2c45f0f7e892d195fb60150",
+  "timestamp": "2026-04-24T11:10:08Z",
+  "trigger": "pr-to-branch"
+}
