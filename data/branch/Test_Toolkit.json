@@ -1,0 +1,18 @@
+{
+  "jobs": {
+    "build": "failure",
+    "compliance": "skipped",
+    "dataset": "skipped",
+    "format": "skipped",
+    "unit-tests": "failure"
+  },
+  "maturity": "beta",
+  "overall": "failure",
+  "ref": "develop",
+  "repository": "BuroHappoldEngineeringSandbox/Test_Toolkit",
+  "run_id": "24886280937",
+  "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Test_Toolkit/actions/runs/24886280937",
+  "sha": "788e78c064de11ed3877e3849cd9285d3d4106ab",
+  "timestamp": "2026-04-24T11:09:49Z",
+  "trigger": "pr-to-branch"
+}
