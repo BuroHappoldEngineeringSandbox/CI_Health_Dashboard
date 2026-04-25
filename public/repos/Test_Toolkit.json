@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-04-25T07:35:26Z",
+  "branch": {
+    "jobs": {
+      "build": "failure",
+      "compliance": "skipped",
+      "dataset": "skipped",
+      "format": "skipped",
+      "unit-tests": "failure"
+    },
+    "maturity": "beta",
+    "overall": "failure",
+    "ref": "develop",
+    "repository": "BuroHappoldEngineeringSandbox/Test_Toolkit",
+    "run_id": "24888714446",
+    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Test_Toolkit/actions/runs/24888714446",
+    "sha": "c32bb9004b27213197af4531d7081e0dc37b5c0f",
+    "timestamp": "2026-04-24T12:11:45Z",
+    "trigger": "pr-to-branch"
+  },
+  "pr": null,
+  "recent_runs": [
+    {
+      "jobs": {
+        "build": "failure",
+        "compliance": "skipped",
+        "dataset": "skipped",
+        "format": "skipped",
+        "unit-tests": "failure"
+      },
+      "maturity": "beta",
+      "overall": "failure",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/Test_Toolkit",
+      "run_id": "24888714446",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Test_Toolkit/actions/runs/24888714446",
+      "sha": "c32bb9004b27213197af4531d7081e0dc37b5c0f",
+      "timestamp": "2026-04-24T12:11:45Z",
+      "trigger": "pr-to-branch"
+    },
+    {
+      "jobs": {
+        "build": "failure",
+        "compliance": "skipped",
+        "dataset": "skipped",
+        "format": "skipped",
+        "unit-tests": "failure"
+      },
+      "maturity": "beta",
+      "overall": "failure",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/Test_Toolkit",
+      "run_id": "24887707955",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Test_Toolkit/actions/runs/24887707955",
+      "sha": "23e7a2ffc66e31976cb643124a3e754871f723fa",
+      "timestamp": "2026-04-24T11:45:36Z",
+      "trigger": "pr-to-branch"
+    },
+    {
+      "jobs": {
+        "build": "failure",
+        "compliance": "skipped",
+        "dataset": "skipped",
+        "format": "skipped",
+        "unit-tests": "failure"
+      },
+      "maturity": "beta",
+      "overall": "failure",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/Test_Toolkit",
+      "run_id": "24886280937",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Test_Toolkit/actions/runs/24886280937",
+      "sha": "788e78c064de11ed3877e3849cd9285d3d4106ab",
+      "timestamp": "2026-04-24T11:09:49Z",
+      "trigger": "pr-to-branch"
+    }
+  ]
+}

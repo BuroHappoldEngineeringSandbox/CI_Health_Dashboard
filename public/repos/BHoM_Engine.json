@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-04-25T07:35:26Z",
+  "branch": {
+    "jobs": {
+      "build": "success",
+      "compliance": "skipped",
+      "dataset": "skipped",
+      "format": "skipped",
+      "unit-tests": "success"
+    },
+    "maturity": "beta",
+    "overall": "success",
+    "ref": "develop",
+    "repository": "BuroHappoldEngineeringSandbox/BHoM_Engine",
+    "run_id": "24888706398",
+    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Engine/actions/runs/24888706398",
+    "sha": "6779fa0ec200c325a9fad115fcdce80955c36f36",
+    "timestamp": "2026-04-24T12:11:46Z",
+    "trigger": "pr-to-branch"
+  },
+  "pr": null,
+  "recent_runs": [
+    {
+      "jobs": {
+        "build": "success",
+        "compliance": "skipped",
+        "dataset": "skipped",
+        "format": "skipped",
+        "unit-tests": "success"
+      },
+      "maturity": "beta",
+      "overall": "success",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/BHoM_Engine",
+      "run_id": "24888706398",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Engine/actions/runs/24888706398",
+      "sha": "6779fa0ec200c325a9fad115fcdce80955c36f36",
+      "timestamp": "2026-04-24T12:11:46Z",
+      "trigger": "pr-to-branch"
+    },
+    {
+      "jobs": {
+        "build": "success",
+        "compliance": "skipped",
+        "dataset": "skipped",
+        "format": "skipped",
+        "unit-tests": "success"
+      },
+      "maturity": "beta",
+      "overall": "success",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/BHoM_Engine",
+      "run_id": "24887699409",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Engine/actions/runs/24887699409",
+      "sha": "f2cbb1efccde5b75cfa8a0e406eab72f23f85d2d",
+      "timestamp": "2026-04-24T11:46:05Z",
+      "trigger": "pr-to-branch"
+    },
+    {
+      "jobs": {
+        "build": "success",
+        "compliance": "skipped",
+        "dataset": "skipped",
+        "format": "skipped",
+        "unit-tests": "success"
+      },
+      "maturity": "beta",
+      "overall": "success",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/BHoM_Engine",
+      "run_id": "24886268627",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Engine/actions/runs/24886268627",
+      "sha": "94a31899341a35e1f2c45f0f7e892d195fb60150",
+      "timestamp": "2026-04-24T11:10:08Z",
+      "trigger": "pr-to-branch"
+    }
+  ]
+}
