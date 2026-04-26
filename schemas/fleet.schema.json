@@ -63,7 +63,7 @@
           },
           "jobs": {
             "type": "object",
-            "description": "Per-pill results. compliance aggregates all four compliance workflows (worst wins).",
+            "description": "Per-pill results. Each value is an object with status and the timestamp of that specific check's last run.",
             "properties": {
               "format":     { "$ref": "#/$defs/jobResult" },
               "compliance": { "$ref": "#/$defs/jobResult" },
@@ -79,8 +79,20 @@
   },
   "$defs": {
     "jobResult": {
-      "type": "string",
-      "enum": ["success", "failure", "skipped", "cancelled", "unknown"]
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["success", "failure", "skipped", "cancelled", "unknown"]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the last run for this specific check."
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

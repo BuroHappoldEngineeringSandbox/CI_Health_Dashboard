@@ -60,17 +60,17 @@ worse_status() {
   echo "${a:-unknown}"
 }
 
-# Derive overall from a jobs JSON object: failure if any job failed/cancelled,
-# success if all are success, otherwise unknown.
+# Derive overall from a jobs JSON object (jobs values are now {status, timestamp} objects).
+# failure if any job failed/cancelled; success if all are success; otherwise unknown.
 derive_overall() {
   local jobs_json="$1"
-  if echo "$jobs_json" | jq -e 'to_entries[] | select(.value == "failure")' > /dev/null 2>&1; then
+  if echo "$jobs_json" | jq -e 'to_entries[] | select(.value.status == "failure")' > /dev/null 2>&1; then
     echo "failure"; return
   fi
-  if echo "$jobs_json" | jq -e 'to_entries[] | select(.value == "cancelled")' > /dev/null 2>&1; then
-    echo "failure"; return   # treat cancelled as failure for overall
+  if echo "$jobs_json" | jq -e 'to_entries[] | select(.value.status == "cancelled")' > /dev/null 2>&1; then
+    echo "failure"; return
   fi
-  if echo "$jobs_json" | jq -e '[to_entries[] | .value] | all(. == "success")' | grep -q true; then
+  if echo "$jobs_json" | jq -e '[to_entries[] | .value.status] | all(. == "success")' | grep -q true; then
     echo "success"; return
   fi
   echo "unknown"
@@ -170,13 +170,25 @@ for REPO in "${ALL_REPOS[@]}"; do
     pr_num=$(echo "$record"  | jq -r '.pr_number // ""')
     repo_full=$(echo "$record" | jq -r '.repository // ""')
 
-    # For compliance: aggregate multiple workflows into one pill (worst wins).
+    # For compliance: aggregate multiple workflows into one pill (worst status wins).
+    # Preserve the timestamp of the most recently run compliance workflow.
     if [ "$pill" = "compliance" ]; then
-      existing=$(echo "$jobs_json" | jq -r '.compliance // "unknown"')
-      merged=$(worse_status "$existing" "$status")
-      jobs_json=$(echo "$jobs_json" | jq --arg v "$merged" '.compliance = $v')
+      existing_status=$(echo "$jobs_json" | jq -r '.compliance.status // "unknown"')
+      existing_ts=$(echo "$jobs_json"     | jq -r '.compliance.timestamp // ""')
+      merged=$(worse_status "$existing_status" "$status")
+      # Keep whichever timestamp is more recent.
+      if [[ "$ts" > "$existing_ts" ]]; then
+        merged_ts="$ts"
+      else
+        merged_ts="$existing_ts"
+      fi
+      jobs_json=$(echo "$jobs_json" | jq \
+        --arg s "$merged" --arg t "$merged_ts" \
+        '.compliance = {status: $s, timestamp: $t}')
     else
-      jobs_json=$(echo "$jobs_json" | jq --arg k "$pill" --arg v "$status" '.[$k] = $v')
+      jobs_json=$(echo "$jobs_json" | jq \
+        --arg k "$pill" --arg s "$status" --arg t "$ts" \
+        '.[$k] = {status: $s, timestamp: $t}')
     fi
 
     # Track the most recent record's metadata for the card header.
