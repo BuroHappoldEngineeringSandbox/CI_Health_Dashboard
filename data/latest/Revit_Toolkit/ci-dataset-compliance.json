@@ -1,12 +1,1 @@
-{
-  "pr_number": "10",
-  "ref": "develop",
-  "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-  "run_id": "24964871935",
-  "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871935",
-  "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
-  "status": "success",
-  "timestamp": "2026-04-26T19:17:33Z",
-  "trigger": "pull_request",
-  "workflow": "ci-dataset-compliance"
-}
+{"pr_number":"10","ref":"develop","repository":"BuroHappoldEngineeringSandbox/Revit_Toolkit","run_id":"24968963409","run_url":"https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24968963409","sha":"e7eb9d04bc33de6bc10d879dc8989776f3b7f474","status":"success","timestamp":"2026-04-26T22:45:14Z","trigger":"pull_request","workflow":"ci-dataset-compliance"}
