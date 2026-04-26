@@ -75,12 +75,14 @@ jobs:
           CONTENT=$(echo "$PAYLOAD" | jq -c '.' | base64 -w0)
 
           # GET existing file SHA — returns empty string if file does not exist yet.
+          # No -f flag: a 404 is expected for new files; curl must return 0 so
+          # set -e does not abort the script. jq returns empty on missing .sha.
           get_sha() {
-            curl -fsSL \
+            curl -sSL \
               -H "Authorization: Bearer $TOKEN" \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "${BASE_URL}/${1}?ref=dashboard-data" 2>/dev/null \
+              "${BASE_URL}/${1}?ref=dashboard-data" \
               | jq -r '.sha // empty'
           }
 
