@@ -84,7 +84,7 @@ jobs:
               | jq -r '.sha // empty'
           }
 
-          # PUT a file. Pass existing SHA as $2 for updates; omit (empty) for creates.
+          # PUT a file. Returns HTTP status code.
           api_put() {
             local path="$1" sha="$2"
             local body
@@ -100,25 +100,43 @@ jobs:
                 --arg msg     "ci: ingest ${REPO}/${WORKFLOW} run ${RUN_ID}" \
                 '{message: $msg, content: $content, branch: "dashboard-data"}')
             fi
-            curl -fsSL -X PUT \
+            curl -o /dev/null -w "%{http_code}" -sSL -X PUT \
               -H "Authorization: Bearer $TOKEN" \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "${BASE_URL}/${path}" \
-              -d "$body" > /dev/null
+              -d "$body"
           }
 
-          # ── Full run history — always a new unique file; no existing SHA needed ──
+          # ── Full run history — unique path per run; 409 = duplicate delivery, skip ──
           RUN_PATH="data/runs/${REPO}/${YEAR}/${MONTH}/${RUN_ID}-${WORKFLOW}.json"
-          api_put "$RUN_PATH" ""
-          echo "::notice::Run record written: ${RUN_PATH}"
+          STATUS_CODE=$(api_put "$RUN_PATH" "")
+          if [ "$STATUS_CODE" = "409" ]; then
+            echo "::notice::Run record already exists (duplicate delivery) — skipped: ${RUN_PATH}"
+          elif [[ "$STATUS_CODE" != "200" && "$STATUS_CODE" != "201" ]]; then
+            echo "::error::Failed to write run record (HTTP ${STATUS_CODE}): ${RUN_PATH}"
+            exit 1
+          else
+            echo "::notice::Run record written: ${RUN_PATH}"
+          fi
 
           # ── Latest per-workflow state — skip cancelled ──────────────────────────
           if [ "$STATUS" != "cancelled" ]; then
             LATEST_PATH="data/latest/${REPO}/${WORKFLOW}.json"
-            SHA=$(get_sha "$LATEST_PATH")
-            api_put "$LATEST_PATH" "$SHA"
-            echo "::notice::Latest record written: ${LATEST_PATH}"
+            # Retry once on 409: SHA changed between our GET and PUT (concurrent ingest)
+            for attempt in 1 2; do
+              SHA=$(get_sha "$LATEST_PATH")
+              STATUS_CODE=$(api_put "$LATEST_PATH" "$SHA")
+              if [[ "$STATUS_CODE" = "200" || "$STATUS_CODE" = "201" ]]; then
+                echo "::notice::Latest record written: ${LATEST_PATH}"
+                break
+              elif [ "$STATUS_CODE" = "409" ] && [ "$attempt" = "1" ]; then
+                echo "::warning::SHA conflict on latest record — retrying with fresh SHA."
+              else
+                echo "::error::Failed to write latest record (HTTP ${STATUS_CODE}): ${LATEST_PATH}"
+                exit 1
+              fi
+            done
           else
             echo "::notice::Status is cancelled — latest record not overwritten."
           fi
