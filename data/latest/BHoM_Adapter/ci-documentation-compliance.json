@@ -1,0 +1,12 @@
+{
+  "pr_number": "11",
+  "ref": "develop",
+  "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
+  "run_id": "24968252370",
+  "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252370",
+  "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
+  "status": "success",
+  "timestamp": "2026-04-26T22:09:50Z",
+  "trigger": "pull_request",
+  "workflow": "ci-documentation-compliance"
+}
