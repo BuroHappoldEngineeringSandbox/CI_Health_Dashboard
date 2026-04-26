@@ -1,12 +1,1 @@
-{
-  "pr_number": "11",
-  "ref": "develop",
-  "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-  "run_id": "24968252374",
-  "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252374",
-  "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-  "status": "success",
-  "timestamp": "2026-04-26T22:09:06Z",
-  "trigger": "pull_request",
-  "workflow": "ci-build"
-}
+{"pr_number":"11","ref":"develop","repository":"BuroHappoldEngineeringSandbox/BHoM_Adapter","run_id":"24968540998","run_url":"https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968540998","sha":"a9d0a6408bf8c72c58be5df2245aaf53b129f1b5","status":"success","timestamp":"2026-04-26T22:24:05Z","trigger":"pull_request","workflow":"ci-build"}
