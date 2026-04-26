@@ -21,8 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write                       # push to gh-pages branch
-      organization_custom_properties: read  # read maturity tier from org properties
+      contents: write  # push to gh-pages branch
 
     steps:
       # Check out both data branches plus main (source of index.html) into named
