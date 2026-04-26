@@ -3,13 +3,13 @@ name: Dashboard Ingest
 # Triggered by repository_dispatch from ci-emit-health.yml in CI_Toolkit.
 # Each dispatch carries a single per-workflow health record.
 #
+# Uses the GitHub Contents API (PUT /contents/{path}) to write files atomically —
+# no git clone, no push conflicts, safe for burst emissions (many workflows firing
+# at once from a single PR across multiple repos).
+#
 # Storage layout on the dashboard-data branch:
 #   data/latest/{repo}/{workflow}.json   — latest record per workflow (not written for cancelled)
 #   data/runs/{repo}/{YYYY}/{MM}/{run_id}-{workflow}.json — full history (always written)
-#
-# Push conflicts from burst emissions (many workflows firing at once from a single PR)
-# are resolved by a jittered rebase retry loop — no serialisation lock, so no runs
-# are cancelled when multiple repos emit simultaneously.
 
 on:
   repository_dispatch:
@@ -57,15 +57,10 @@ jobs:
           echo "workflow=$WORKFLOW" >> "$GITHUB_OUTPUT"
           echo "status=$STATUS"     >> "$GITHUB_OUTPUT"
 
-      - name: Checkout dashboard-data branch
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: dashboard-data
-          fetch-depth: 1
-
-      - name: Write records
+      - name: Write records via Contents API
         shell: bash
         env:
+          TOKEN:    ${{ github.token }}
           PAYLOAD:  ${{ toJSON(github.event.client_payload) }}
           REPO:     ${{ steps.validate.outputs.repo }}
           RUN_ID:   ${{ steps.validate.outputs.run_id }}
@@ -76,51 +71,56 @@ jobs:
 
           YEAR=$(date -u +"%Y")
           MONTH=$(date -u +"%m")
+          BASE_URL="https://api.github.com/repos/BuroHappoldEngineeringSandbox/CI_Health_Dashboard/contents"
+          CONTENT=$(echo "$PAYLOAD" | jq -c '.' | base64 -w0)
 
-          # ── Full run history — always written ───────────────────────────────
-          RUN_DIR="data/runs/${REPO}/${YEAR}/${MONTH}"
-          mkdir -p "$RUN_DIR"
-          echo "$PAYLOAD" | jq '.' > "${RUN_DIR}/${RUN_ID}-${WORKFLOW}.json"
+          # GET existing file SHA — returns empty string if file does not exist yet.
+          get_sha() {
+            curl -fsSL \
+              -H "Authorization: Bearer $TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "${BASE_URL}/${1}?ref=dashboard-data" 2>/dev/null \
+              | jq -r '.sha // empty'
+          }
 
-          # ── Latest per-workflow state — skip cancelled so a cancellation ────
-          # does not overwrite a previously good or failed record.
+          # PUT a file. Pass existing SHA as $2 for updates; omit (empty) for creates.
+          api_put() {
+            local path="$1" sha="$2"
+            local body
+            if [ -n "$sha" ]; then
+              body=$(jq -n \
+                --arg content "$CONTENT" \
+                --arg sha     "$sha" \
+                --arg msg     "ci: ingest ${REPO}/${WORKFLOW} run ${RUN_ID}" \
+                '{message: $msg, content: $content, branch: "dashboard-data", sha: $sha}')
+            else
+              body=$(jq -n \
+                --arg content "$CONTENT" \
+                --arg msg     "ci: ingest ${REPO}/${WORKFLOW} run ${RUN_ID}" \
+                '{message: $msg, content: $content, branch: "dashboard-data"}')
+            fi
+            curl -fsSL -X PUT \
+              -H "Authorization: Bearer $TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "${BASE_URL}/${path}" \
+              -d "$body" > /dev/null
+          }
+
+          # ── Full run history — always a new unique file; no existing SHA needed ──
+          RUN_PATH="data/runs/${REPO}/${YEAR}/${MONTH}/${RUN_ID}-${WORKFLOW}.json"
+          api_put "$RUN_PATH" ""
+          echo "::notice::Run record written: ${RUN_PATH}"
+
+          # ── Latest per-workflow state — skip cancelled ──────────────────────────
           if [ "$STATUS" != "cancelled" ]; then
-            LATEST_DIR="data/latest/${REPO}"
-            mkdir -p "$LATEST_DIR"
-            echo "$PAYLOAD" | jq '.' > "${LATEST_DIR}/${WORKFLOW}.json"
+            LATEST_PATH="data/latest/${REPO}/${WORKFLOW}.json"
+            SHA=$(get_sha "$LATEST_PATH")
+            api_put "$LATEST_PATH" "$SHA"
+            echo "::notice::Latest record written: ${LATEST_PATH}"
           else
             echo "::notice::Status is cancelled — latest record not overwritten."
           fi
 
-      - name: Commit and push
-        shell: bash
-        env:
-          REPO:     ${{ steps.validate.outputs.repo }}
-          RUN_ID:   ${{ steps.validate.outputs.run_id }}
-          WORKFLOW: ${{ steps.validate.outputs.workflow }}
-        run: |
-          set -euo pipefail
-
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add data/
-
-          if git diff --cached --quiet; then
-            echo "::notice::No changes to commit — likely a duplicate delivery."
-            exit 0
-          fi
-
-          git commit -m "ci: ingest ${REPO}/${WORKFLOW} run ${RUN_ID}"
-
-          # Jittered retry — spreads concurrent pushes from burst emissions
-          # (e.g. 8 workflows × 3 repos firing at once).
-          for attempt in 1 2 3 4 5; do
-            sleep $(( RANDOM % 5 ))
-            if git push origin dashboard-data; then
-              break
-            fi
-            echo "::warning::Push attempt ${attempt} failed — rebasing and retrying."
-            git pull --rebase origin dashboard-data
-          done
 
