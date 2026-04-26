@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write  # push to gh-pages branch
+      contents: write                       # push to gh-pages branch
+      organization_custom_properties: read  # read maturity tier from org properties
 
     steps:
       # Check out both data branches plus main (source of index.html) into named
@@ -50,6 +51,8 @@ jobs:
       - name: Generate fleet snapshot
         id: generate
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           bash source/src/snapshot/build-fleet.sh

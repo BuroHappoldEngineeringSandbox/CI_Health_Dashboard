@@ -7,8 +7,9 @@
 #   data/runs/{repo}/{YYYY}/{MM}/       — full run history per repo
 #   (working dir must contain dashboard-data/ and gh-pages/ subdirs)
 #
-# Config (on main/source branch, passed via source/):
-#   source/config/maturity.json         — optional map of "org/repo" → tier string
+# Maturity tiers are read from GitHub Custom Properties (org-level property named
+# "maturity"). Repos without the property set default to "prototype".
+# Requires GH_TOKEN env var with org custom property read access.
 #
 # Outputs written to gh-pages/public/:
 #   fleet.json              — fleet-wide aggregated status, all known repos
@@ -30,7 +31,7 @@ mkdir -p gh-pages/public/repos
 
 LATEST_DIR="dashboard-data/data/latest"
 RUNS_BASE="dashboard-data/data/runs"
-MATURITY_FILE="source/config/maturity.json"
+ORG="BuroHappoldEngineeringSandbox"
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -75,16 +76,49 @@ derive_overall() {
   echo "unknown"
 }
 
-# Look up maturity tier for an org/repo string from maturity.json.
+# Fetch all custom property values for the org in one paginated bulk call.
+# Builds a JSON object: { "org/repo": "tier", ... } stored in MATURITY_MAP.
+load_maturity_map() {
+  MATURITY_MAP='{}'
+  if [ -z "${GH_TOKEN:-}" ]; then
+    echo "::warning::GH_TOKEN not set — maturity will default to 'prototype' for all repos."
+    return
+  fi
+
+  local page=1 per_page=100 batch
+  while true; do
+    batch=$(curl -fsSL \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Bearer $GH_TOKEN" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/orgs/${ORG}/properties/values?per_page=${per_page}&page=${page}" \
+      2>/dev/null || echo '[]')
+
+    # Stop if no more results.
+    [ "$(echo "$batch" | jq 'length')" -eq 0 ] && break
+
+    # Extract repos that have a "maturity" property and merge into MATURITY_MAP.
+    MATURITY_MAP=$(echo "$MATURITY_MAP" \
+      "$batch" \
+      | jq -s '
+          .[0] as $map |
+          .[1]
+          | map({
+              key: .repository_full_name,
+              value: (.properties[] | select(.property_name == "maturity") | .value) // empty
+            })
+          | from_entries
+          | $map + .
+        ')
+
+    (( page++ ))
+  done
+}
+
+# Look up maturity for an org/repo string from the pre-loaded MATURITY_MAP.
 get_maturity() {
   local repository="$1"
-  if [ -f "$MATURITY_FILE" ]; then
-    local tier
-    tier=$(jq -r --arg r "$repository" '.repos[$r] // "prototype"' "$MATURITY_FILE")
-    echo "$tier"
-  else
-    echo "prototype"
-  fi
+  echo "$MATURITY_MAP" | jq -r --arg r "$repository" '.[$r] // "prototype"'
 }
 
 # ── Discover repos ───────────────────────────────────────────────────────────
@@ -101,7 +135,8 @@ if [ ${#ALL_REPOS[@]} -eq 0 ]; then
   jq -n --arg g "$GENERATED_AT" '{generated_at: $g, repos: []}' > gh-pages/public/fleet.json
   exit 0
 fi
-
+# Load maturity from GitHub Custom Properties (one bulk API call for the whole org).
+load_maturity_map
 # ── Build fleet entries ──────────────────────────────────────────────────────
 
 FLEET_ENTRIES=()

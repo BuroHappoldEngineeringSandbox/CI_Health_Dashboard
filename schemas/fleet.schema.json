@@ -58,7 +58,7 @@
           },
           "maturity": {
             "type": "string",
-            "description": "Maturity tier from config/maturity.json (defaults to prototype).",
+            "description": "Maturity tier from the GitHub org custom property 'maturity' (defaults to prototype).",
             "enum": ["prototype", "alpha", "beta"]
           },
           "jobs": {
