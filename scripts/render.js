@@ -12,13 +12,17 @@ const JOB_ORDER = ['format', 'compliance', 'dataset', 'build', 'unit-tests'];
  */
 function renderCard(repo) {
   const pills = JOB_ORDER.map(job => {
-    const result = (repo.jobs || {})[job] || 'unknown';
+    const entry  = (repo.jobs || {})[job];
+    // Support both new {status, timestamp} shape and legacy bare string.
+    const result = (entry && typeof entry === 'object') ? entry.status : (entry || 'unknown');
+    const ts     = (entry && typeof entry === 'object') ? entry.timestamp : null;
     const cls    = pillClass(result);
+    const label  = ts ? `<span class="pill-time">${relativeTime(ts)}</span>` : '';
     // Failing pills link directly to the run so one click reaches the evidence.
     if (result === 'failure' && repo.run_url) {
-      return `<a class="pill ${cls}" href="${repo.run_url}" target="_blank" rel="noopener noreferrer">${job}</a>`;
+      return `<span class="pill-wrap"><a class="pill ${cls}" href="${repo.run_url}" target="_blank" rel="noopener noreferrer">${job}</a>${label}</span>`;
     }
-    return `<span class="pill ${cls}">${job}</span>`;
+    return `<span class="pill-wrap"><span class="pill ${cls}">${job}</span>${label}</span>`;
   }).join('');
 
   const badge = repo.maturity

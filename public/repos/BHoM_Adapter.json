@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T22:50:40Z",
+  "generated_at": "2026-04-26T23:12:29Z",
   "latest": {
     "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
     "ref": "develop",
@@ -11,11 +11,26 @@
     "overall": "failure",
     "maturity": "prototype",
     "jobs": {
-      "build": "success",
-      "compliance": "success",
-      "dataset": "success",
-      "format": "success",
-      "unit-tests": "failure"
+      "build": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:46:41Z"
+      },
+      "compliance": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:47:27Z"
+      },
+      "dataset": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:45:11Z"
+      },
+      "format": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:45:18Z"
+      },
+      "unit-tests": {
+        "status": "failure",
+        "timestamp": "2026-04-26T22:47:07Z"
+      }
     }
   },
   "recent_runs": [

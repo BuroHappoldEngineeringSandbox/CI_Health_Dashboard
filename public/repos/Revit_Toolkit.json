@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T22:50:40Z",
+  "generated_at": "2026-04-26T23:12:29Z",
   "latest": {
     "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
     "ref": "develop",
@@ -11,11 +11,26 @@
     "overall": "failure",
     "maturity": "prototype",
     "jobs": {
-      "build": "failure",
-      "compliance": "success",
-      "dataset": "success",
-      "format": "success",
-      "unit-tests": "success"
+      "build": {
+        "status": "failure",
+        "timestamp": "2026-04-26T22:47:14Z"
+      },
+      "compliance": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:49:05Z"
+      },
+      "dataset": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:45:14Z"
+      },
+      "format": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:45:19Z"
+      },
+      "unit-tests": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:45:11Z"
+      }
     }
   },
   "recent_runs": [

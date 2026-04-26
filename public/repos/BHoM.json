@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T22:50:40Z",
+  "generated_at": "2026-04-26T23:12:29Z",
   "latest": {
     "repository": "BuroHappoldEngineeringSandbox/BHoM",
     "ref": "develop",
@@ -11,10 +11,22 @@
     "overall": "failure",
     "maturity": "prototype",
     "jobs": {
-      "build": "success",
-      "format": "success",
-      "compliance": "success",
-      "unit-tests": "failure"
+      "build": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:47:06Z"
+      },
+      "format": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:45:25Z"
+      },
+      "compliance": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:46:39Z"
+      },
+      "unit-tests": {
+        "status": "failure",
+        "timestamp": "2026-04-26T22:47:11Z"
+      }
     }
   },
   "recent_runs": [
