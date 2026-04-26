@@ -1,12 +1,1 @@
-{
-  "pr_number": "8",
-  "ref": "develop",
-  "repository": "BuroHappoldEngineeringSandbox/BHoM",
-  "run_id": "24968252423",
-  "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM/actions/runs/24968252423",
-  "sha": "0e2ca79f0fb1ab72d2ff7f878e79edd42d1846a1",
-  "status": "success",
-  "timestamp": "2026-04-26T22:09:08Z",
-  "trigger": "pull_request",
-  "workflow": "ci-build"
-}
+{"pr_number":"8","ref":"develop","repository":"BuroHappoldEngineeringSandbox/BHoM","run_id":"24968541397","run_url":"https://github.com/BuroHappoldEngineeringSandbox/BHoM/actions/runs/24968541397","sha":"e69fab72b887b8ab759ff3bce7f56d235b0d5e14","status":"success","timestamp":"2026-04-26T22:24:19Z","trigger":"pull_request","workflow":"ci-build"}
