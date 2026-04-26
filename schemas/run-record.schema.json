@@ -9,8 +9,9 @@
   "properties": {
     "repository": {
       "type": "string",
-      "description": "Full 'org/repo' identifier of the source repository.",
-      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+      "description": "Full org/repo identifier of the source repository.",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+      "examples": ["BuroHappoldEngineeringSandbox/BHoM_Adapter"]
     },
     "run_id": {
       "type": "string",
@@ -34,16 +35,17 @@
     },
     "ref": {
       "type": "string",
-      "description": "Destination branch (base_ref for PRs, ref_name for push).",
+      "description": "Destination branch (base_ref for PRs, ref_name for push). Always a branch name, never a PR ref.",
       "examples": ["develop", "main"]
     },
     "sha": {
       "type": "string",
-      "description": "Commit SHA that was tested."
+      "description": "Full commit SHA that was tested.",
+      "pattern": "^[0-9a-f]{40}$"
     },
     "pr_number": {
       "type": "string",
-      "description": "Pull request number (empty for non-PR triggers)."
+      "description": "Pull request number (empty string for non-PR triggers)."
     },
     "run_url": {
       "type": "string",
@@ -54,73 +56,6 @@
       "type": "string",
       "description": "ISO 8601 UTC timestamp when the emit-health job ran.",
       "format": "date-time"
-    }
-  }
-}
-
-    "repository": {
-      "type": "string",
-      "description": "Full 'org/repo' identifier of the source repository.",
-      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
-      "examples": ["BuroHappoldEngineeringSandbox/BHoM_Adapter"]
-    },
-    "sha": {
-      "type": "string",
-      "description": "Full commit SHA that was tested.",
-      "pattern": "^[0-9a-f]{40}$"
-    },
-    "ref": {
-      "type": "string",
-      "description": "The destination branch this run contributes health data to (github.base_ref for PRs, github.ref_name for push). Always a branch name, never a PR ref.",
-      "examples": ["develop", "main"]
-    },
-    "run_id": {
-      "type": "string",
-      "description": "GitHub Actions run ID.",
-      "pattern": "^[0-9]+$"
-    },
-    "trigger": {
-      "type": "string",
-      "description": "Semantic routing trigger computed by emit-health. 'pr-to-branch' means a PR targeting develop/main whose merge-commit run is treated as branch-authoritative state.",
-      "enum": ["push", "workflow_dispatch", "pr-to-branch", "pull_request", "pull_request_target"]
-    },
-    "timestamp": {
-      "type": "string",
-      "description": "ISO 8601 UTC timestamp when the emit-health job ran.",
-      "format": "date-time"
-    },
-    "run_url": {
-      "type": "string",
-      "description": "Full URL to the GitHub Actions run page.",
-      "format": "uri"
-    },
-    "maturity": {
-      "type": "string",
-      "description": "Maturity tier of the repo as determined by policy.json in DevOps_Toolkit.",
-      "enum": ["prototype", "alpha", "beta"]
-    },
-    "overall": {
-      "type": "string",
-      "description": "Rolled-up CI result. 'failure' if any job failed or was cancelled; 'success' if all ran jobs passed.",
-      "enum": ["success", "failure"]
-    },
-    "jobs": {
-      "type": "object",
-      "description": "Per-job results keyed by job name.",
-      "properties": {
-        "format":       { "$ref": "#/$defs/jobResult" },
-        "compliance":   { "$ref": "#/$defs/jobResult" },
-        "dataset":      { "$ref": "#/$defs/jobResult" },
-        "build":        { "$ref": "#/$defs/jobResult" },
-        "unit-tests":   { "$ref": "#/$defs/jobResult" }
-      },
-      "additionalProperties": false
-    }
-  },
-  "$defs": {
-    "jobResult": {
-      "type": "string",
-      "enum": ["success", "failure", "skipped", "cancelled"]
     }
   }
 }
