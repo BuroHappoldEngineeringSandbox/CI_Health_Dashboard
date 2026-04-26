@@ -7,16 +7,13 @@ name: Dashboard Ingest
 #   data/latest/{repo}/{workflow}.json   — latest record per workflow (not written for cancelled)
 #   data/runs/{repo}/{YYYY}/{MM}/{run_id}-{workflow}.json — full history (always written)
 #
-# Concurrency is serialised to prevent git push conflicts when multiple
-# repos emit records simultaneously.
+# Push conflicts from burst emissions (many workflows firing at once from a single PR)
+# are resolved by a jittered rebase retry loop — no serialisation lock, so no runs
+# are cancelled when multiple repos emit simultaneously.
 
 on:
   repository_dispatch:
     types: [ci-health-run]
-
-concurrency:
-  group: dashboard-data-write
-  cancel-in-progress: false
 
 jobs:
   ingest:
@@ -116,7 +113,10 @@ jobs:
 
           git commit -m "ci: ingest ${REPO}/${WORKFLOW} run ${RUN_ID}"
 
-          for attempt in 1 2 3; do
+          # Jittered retry — spreads concurrent pushes from burst emissions
+          # (e.g. 8 workflows × 3 repos firing at once).
+          for attempt in 1 2 3 4 5; do
+            sleep $(( RANDOM % 5 ))
             if git push origin dashboard-data; then
               break
             fi
