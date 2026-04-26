@@ -1,0 +1,12 @@
+{
+  "pr_number": "10",
+  "ref": "develop",
+  "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
+  "run_id": "24964871928",
+  "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871928",
+  "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+  "status": "failure",
+  "timestamp": "2026-04-26T19:19:39Z",
+  "trigger": "pull_request",
+  "workflow": "ci-build"
+}
