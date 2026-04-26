@@ -1,149 +1,106 @@
 {
-  "generated_at": "2026-04-26T07:37:21Z",
-  "branch": {
-    "jobs": {
-      "build": "failure",
-      "compliance": "skipped",
-      "dataset": "skipped",
-      "format": "skipped",
-      "unit-tests": "success"
-    },
-    "maturity": "beta",
-    "overall": "failure",
-    "ref": "develop",
+  "generated_at": "2026-04-26T19:20:14Z",
+  "latest": {
     "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-    "run_id": "24888713012",
-    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24888713012",
-    "sha": "bab1d0bea718d814ba42623cbd20bb49e3e8a792",
-    "timestamp": "2026-04-24T12:12:10Z",
-    "trigger": "pr-to-branch"
-  },
-  "pr": {
+    "ref": "develop",
+    "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+    "trigger": "pull_request",
+    "pr_number": "10",
+    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871928",
+    "timestamp": "2026-04-26T19:19:39Z",
+    "overall": "failure",
+    "maturity": "prototype",
     "jobs": {
       "build": "failure",
       "compliance": "success",
-      "dataset": "skipped",
-      "format": "success",
+      "dataset": "success",
       "unit-tests": "success"
-    },
-    "maturity": "beta",
-    "overall": "failure",
-    "ref": "1/merge",
-    "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-    "run_id": "24616916824",
-    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24616916824",
-    "sha": "cc50d7741edfa9e8a6e9677f09f692c779c1cbea",
-    "timestamp": "2026-04-19T00:11:10Z",
-    "trigger": "pull_request"
+    }
   },
   "recent_runs": [
     {
-      "jobs": {
-        "build": "failure",
-        "compliance": "skipped",
-        "dataset": "skipped",
-        "format": "skipped",
-        "unit-tests": "success"
-      },
-      "maturity": "beta",
-      "overall": "failure",
+      "pr_number": "10",
       "ref": "develop",
       "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-      "run_id": "24888713012",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24888713012",
-      "sha": "bab1d0bea718d814ba42623cbd20bb49e3e8a792",
-      "timestamp": "2026-04-24T12:12:10Z",
-      "trigger": "pr-to-branch"
+      "run_id": "24964871928",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871928",
+      "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+      "status": "failure",
+      "timestamp": "2026-04-26T19:19:39Z",
+      "trigger": "pull_request",
+      "workflow": "ci-build"
     },
     {
-      "jobs": {
-        "build": "failure",
-        "compliance": "skipped",
-        "dataset": "skipped",
-        "format": "skipped",
-        "unit-tests": "success"
-      },
-      "maturity": "beta",
-      "overall": "failure",
+      "pr_number": "10",
       "ref": "develop",
       "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-      "run_id": "24887706285",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24887706285",
-      "sha": "4c55c569ac396d2d0ed6872feea0bcd140ff5398",
-      "timestamp": "2026-04-24T11:46:02Z",
-      "trigger": "pr-to-branch"
+      "run_id": "24964871939",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871939",
+      "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+      "status": "success",
+      "timestamp": "2026-04-26T19:19:38Z",
+      "trigger": "pull_request",
+      "workflow": "ci-code-compliance"
     },
     {
-      "jobs": {
-        "build": "failure",
-        "compliance": "skipped",
-        "dataset": "skipped",
-        "format": "skipped",
-        "unit-tests": "success"
-      },
-      "maturity": "beta",
-      "overall": "failure",
+      "pr_number": "10",
       "ref": "develop",
       "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-      "run_id": "24886277294",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24886277294",
-      "sha": "8edda1472c91fca9b3ed9dc5f2527602d8133dd1",
-      "timestamp": "2026-04-24T11:08:19Z",
-      "trigger": "pr-to-branch"
+      "run_id": "24964871927",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871927",
+      "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+      "status": "success",
+      "timestamp": "2026-04-26T19:19:20Z",
+      "trigger": "pull_request",
+      "workflow": "ci-copyright-compliance"
     },
     {
-      "jobs": {
-        "build": "failure",
-        "compliance": "success",
-        "dataset": "skipped",
-        "format": "success",
-        "unit-tests": "success"
-      },
-      "maturity": "beta",
-      "overall": "failure",
+      "pr_number": "10",
       "ref": "develop",
       "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-      "run_id": "24627028557",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24627028557",
-      "sha": "63aac17d2e19ffb7f9a0a73dc4fcac723029520b",
-      "timestamp": "2026-04-19T10:36:32Z",
-      "trigger": "pr-to-branch"
+      "run_id": "24964871930",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871930",
+      "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+      "status": "success",
+      "timestamp": "2026-04-26T19:19:18Z",
+      "trigger": "pull_request",
+      "workflow": "ci-project-compliance"
     },
     {
-      "jobs": {
-        "build": "failure",
-        "compliance": "success",
-        "dataset": "skipped",
-        "format": "success",
-        "unit-tests": "success"
-      },
-      "maturity": "beta",
-      "overall": "failure",
+      "pr_number": "10",
       "ref": "develop",
       "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-      "run_id": "24626816209",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24626816209",
-      "sha": "13e985926b0ce7eb6bf9e892a8cc61dc7bd2641a",
-      "timestamp": "2026-04-19T10:23:45Z",
-      "trigger": "pr-to-branch"
+      "run_id": "24964871929",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871929",
+      "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+      "status": "success",
+      "timestamp": "2026-04-26T19:19:10Z",
+      "trigger": "pull_request",
+      "workflow": "ci-documentation-compliance"
     },
     {
-      "jobs": {
-        "build": "failure",
-        "compliance": "success",
-        "dataset": "skipped",
-        "format": "success",
-        "unit-tests": "success"
-      },
-      "maturity": "beta",
-      "overall": "failure",
-      "ref": "1/merge",
+      "pr_number": "10",
+      "ref": "develop",
       "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
-      "run_id": "24616916824",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24616916824",
-      "sha": "cc50d7741edfa9e8a6e9677f09f692c779c1cbea",
-      "timestamp": "2026-04-19T00:11:10Z",
-      "trigger": "pull_request"
+      "run_id": "24964871941",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871941",
+      "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+      "status": "success",
+      "timestamp": "2026-04-26T19:17:37Z",
+      "trigger": "pull_request",
+      "workflow": "ci-unit-tests"
+    },
+    {
+      "pr_number": "10",
+      "ref": "develop",
+      "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
+      "run_id": "24964871935",
+      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24964871935",
+      "sha": "70c1db367ce650b53229886b0e30c12c2df17629",
+      "status": "success",
+      "timestamp": "2026-04-26T19:17:33Z",
+      "trigger": "pull_request",
+      "workflow": "ci-dataset-compliance"
     }
   ]
 }
