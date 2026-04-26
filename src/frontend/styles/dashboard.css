@@ -154,6 +154,13 @@ body {
   font-size: 9px;
   color: var(--color-text-muted);
   white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  height: 11px; /* reserve space so layout doesn't shift on hover */
+}
+
+.pill-wrap:hover .pill-time {
+  opacity: 1;
 }
 
 .pill {
