@@ -1,11 +1,14 @@
 name: Dashboard Ingest
 
-# Triggered by repository_dispatch from the emit-health job in each repo's orchestrator.
-# Writes a per-run JSON record to the dashboard-data orphan branch and updates the
-# latest-status file for that repo so the snapshot workflow always has fresh input.
+# Triggered by repository_dispatch from ci-emit-health.yml in CI_Toolkit.
+# Each dispatch carries a single per-workflow health record.
 #
-# Concurrency is serialised (cancel-in-progress: false) to prevent git push conflicts
-# when multiple repos emit health records simultaneously.
+# Storage layout on the dashboard-data branch:
+#   data/latest/{repo}/{workflow}.json   — latest record per workflow (not written for cancelled)
+#   data/runs/{repo}/{YYYY}/{MM}/{run_id}-{workflow}.json — full history (always written)
+#
+# Concurrency is serialised to prevent git push conflicts when multiple
+# repos emit records simultaneously.
 
 on:
   repository_dispatch:
@@ -20,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write  # push to dashboard-data branch
+      contents: write
 
     steps:
       - name: Validate payload
@@ -29,23 +32,33 @@ jobs:
         env:
           REPOSITORY: ${{ github.event.client_payload.repository }}
           RUN_ID:     ${{ github.event.client_payload.run_id }}
+          WORKFLOW:   ${{ github.event.client_payload.workflow }}
+          STATUS:     ${{ github.event.client_payload.status }}
         run: |
           set -euo pipefail
 
-          # Guard against path traversal or injection via malformed payloads.
-          # repository is "org/repo"; extract just the repo name for use as a filesystem path.
           if [[ ! "$REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
-            echo "::error::Invalid repository in payload: '${REPOSITORY}'"
+            echo "::error::Invalid repository: '${REPOSITORY}'"
             exit 1
           fi
           if [[ ! "$RUN_ID" =~ ^[0-9]+$ ]]; then
-            echo "::error::Invalid run_id in payload: '${RUN_ID}'"
+            echo "::error::Invalid run_id: '${RUN_ID}'"
+            exit 1
+          fi
+          if [[ ! "$WORKFLOW" =~ ^[A-Za-z0-9_-]{1,60}$ ]]; then
+            echo "::error::Invalid workflow name: '${WORKFLOW}'"
+            exit 1
+          fi
+          if [[ ! "$STATUS" =~ ^(success|failure|cancelled|skipped)$ ]]; then
+            echo "::error::Invalid status: '${STATUS}'"
             exit 1
           fi
 
           REPO=$(echo "$REPOSITORY" | cut -d'/' -f2)
-          echo "repo=$REPO"     >> "$GITHUB_OUTPUT"
-          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "repo=$REPO"         >> "$GITHUB_OUTPUT"
+          echo "run_id=$RUN_ID"     >> "$GITHUB_OUTPUT"
+          echo "workflow=$WORKFLOW" >> "$GITHUB_OUTPUT"
+          echo "status=$STATUS"     >> "$GITHUB_OUTPUT"
 
       - name: Checkout dashboard-data branch
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -53,58 +66,41 @@ jobs:
           ref: dashboard-data
           fetch-depth: 1
 
-      - name: Write run record
+      - name: Write records
         shell: bash
         env:
-          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
-          REPO:    ${{ steps.validate.outputs.repo }}
-          RUN_ID:  ${{ steps.validate.outputs.run_id }}
-          TRIGGER: ${{ github.event.client_payload.trigger }}
+          PAYLOAD:  ${{ toJSON(github.event.client_payload) }}
+          REPO:     ${{ steps.validate.outputs.repo }}
+          RUN_ID:   ${{ steps.validate.outputs.run_id }}
+          WORKFLOW: ${{ steps.validate.outputs.workflow }}
+          STATUS:   ${{ steps.validate.outputs.status }}
         run: |
           set -euo pipefail
 
           YEAR=$(date -u +"%Y")
           MONTH=$(date -u +"%m")
 
-          # ── Per-run history (trigger-agnostic) ─────────────────────────────
-          # One file per run — retained permanently for trend analysis.
+          # ── Full run history — always written ───────────────────────────────
           RUN_DIR="data/runs/${REPO}/${YEAR}/${MONTH}"
           mkdir -p "$RUN_DIR"
-          echo "$PAYLOAD" | jq '.' > "${RUN_DIR}/${RUN_ID}.json"
+          echo "$PAYLOAD" | jq '.' > "${RUN_DIR}/${RUN_ID}-${WORKFLOW}.json"
 
-          # ── Authoritative latest-state (split by trigger type) ─────────────
-          # push/workflow_dispatch (direct branch runs) → data/branch/{repo}.json
-          # pr-to-branch (PR against develop/main, run against synthetic merge commit)
-          #   → data/branch/{repo}.json  (treated as branch truth; no per-repo push
-          #     caller needed across 100+ repos — ruleset guarantees no direct pushes)
-          # pull_request (PR against a non-protected branch) → data/pr/{repo}.json
-          #   Fallback source; used only when no branch record exists yet.
-          #
-          # This split prevents an ephemeral PR run from silently overwriting a
-          # branch health record, while still capturing branch truth from PR merges.
-          case "$TRIGGER" in
-            push|workflow_dispatch|pr-to-branch)
-              mkdir -p data/branch
-              echo "$PAYLOAD" | jq '.' > "data/branch/${REPO}.json"
-              ;;
-            pull_request|pull_request_target)
-              mkdir -p data/pr
-              echo "$PAYLOAD" | jq '.' > "data/pr/${REPO}.json"
-              ;;
-            *)
-              # Unknown trigger — write to branch as a safe default so the record
-              # is not silently dropped, but log a notice for visibility.
-              echo "::notice::Unrecognised trigger '${TRIGGER}' for ${REPO} — writing to data/branch/."
-              mkdir -p data/branch
-              echo "$PAYLOAD" | jq '.' > "data/branch/${REPO}.json"
-              ;;
-          esac
+          # ── Latest per-workflow state — skip cancelled so a cancellation ────
+          # does not overwrite a previously good or failed record.
+          if [ "$STATUS" != "cancelled" ]; then
+            LATEST_DIR="data/latest/${REPO}"
+            mkdir -p "$LATEST_DIR"
+            echo "$PAYLOAD" | jq '.' > "${LATEST_DIR}/${WORKFLOW}.json"
+          else
+            echo "::notice::Status is cancelled — latest record not overwritten."
+          fi
 
       - name: Commit and push
         shell: bash
         env:
-          REPO:   ${{ steps.validate.outputs.repo }}
-          RUN_ID: ${{ steps.validate.outputs.run_id }}
+          REPO:     ${{ steps.validate.outputs.repo }}
+          RUN_ID:   ${{ steps.validate.outputs.run_id }}
+          WORKFLOW: ${{ steps.validate.outputs.workflow }}
         run: |
           set -euo pipefail
 
@@ -113,15 +109,13 @@ jobs:
 
           git add data/
 
-          # Exit cleanly on idempotent re-delivery of the same event.
           if git diff --cached --quiet; then
             echo "::notice::No changes to commit — likely a duplicate delivery."
             exit 0
           fi
 
-          git commit -m "ci: ingest run ${RUN_ID} (${REPO})"
+          git commit -m "ci: ingest ${REPO}/${WORKFLOW} run ${RUN_ID}"
 
-          # Retry up to 3 times to handle rare concurrent-push races.
           for attempt in 1 2 3; do
             if git push origin dashboard-data; then
               break
@@ -129,3 +123,4 @@ jobs:
             echo "::warning::Push attempt ${attempt} failed — rebasing and retrying."
             git pull --rebase origin dashboard-data
           done
+

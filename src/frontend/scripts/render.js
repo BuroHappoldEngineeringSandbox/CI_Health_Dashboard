@@ -25,15 +25,9 @@ function renderCard(repo) {
     ? `<span class="badge ${badgeClass(repo.maturity)}">${(repo.maturity).toLowerCase()}</span>`
     : '';
 
-  // _source tells us whether this record came from a branch (pr-to-branch or push) or
-  // a PR against a non-protected branch. Branch records are authoritative; PR records
-  // are fallback — shown only when no branch record exists for a repo yet.
-  let sourceLabel = '';
-  if (repo._source === 'branch') {
-    sourceLabel = `<span class="source-label source-branch">${repo.ref || 'branch'}</span>`;
-  } else if (repo._source === 'pr') {
-    sourceLabel = `<span class="source-label">PR · ${repo.ref || '?'}</span>`;
-  }
+  const refLabel = repo.ref
+    ? `<span class="source-label">${repo.ref}</span>`
+    : '';
 
   const runLink = repo.run_url
     ? `<a href="${repo.run_url}" target="_blank" rel="noopener noreferrer">view run ↗</a>`
@@ -44,7 +38,7 @@ function renderCard(repo) {
       <div class="card-identity">
         <a href="${repoUrl(repo.repository)}" target="_blank" rel="noopener noreferrer">${repoName(repo.repository)}</a>
         ${badge}
-        ${sourceLabel}
+        ${refLabel}
       </div>
       <div class="job-pills">${pills}</div>
       <div class="card-meta">

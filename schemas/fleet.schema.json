@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://burohappoldengineeringsandbox.github.io/CI_Health_Dashboard/schemas/fleet.schema.json",
   "title": "Fleet Snapshot",
-  "description": "The fleet.json file published to gh-pages/public/ by dashboard-snapshot.yml. Consumed by the frontend (main.js) to render the dashboard.",
+  "description": "The fleet.json file published to gh-pages/public/ by dashboard-snapshot.yml. Each repo entry is an aggregation of per-workflow run records built by build-fleet.sh.",
   "type": "object",
   "required": ["generated_at", "repos"],
   "additionalProperties": false,
@@ -14,23 +14,74 @@
     },
     "repos": {
       "type": "array",
-      "description": "Array of repo fleet entries, sorted alphabetically by repository. Failures are sorted first by the frontend, not here.",
+      "description": "Array of aggregated repo health entries, sorted alphabetically by repository.",
       "items": {
-        "allOf": [
-          { "$ref": "run-record.schema.json" },
-          {
+        "type": "object",
+        "required": ["repository", "overall", "maturity", "jobs", "timestamp"],
+        "additionalProperties": false,
+        "properties": {
+          "repository": {
+            "type": "string",
+            "description": "Full 'org/repo' identifier.",
+            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+          },
+          "ref": {
+            "type": "string",
+            "description": "Destination branch from the most recent run record."
+          },
+          "sha": {
+            "type": "string",
+            "description": "Commit SHA from the most recent run record."
+          },
+          "trigger": {
+            "type": "string",
+            "description": "Event name from the most recent run record."
+          },
+          "pr_number": {
+            "type": "string",
+            "description": "PR number from the most recent run record."
+          },
+          "run_url": {
+            "type": "string",
+            "description": "URL of the most recent Actions run.",
+            "format": "uri"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp of the most recent run record.",
+            "format": "date-time"
+          },
+          "overall": {
+            "type": "string",
+            "description": "Rolled-up result. failure if any job failed/cancelled, success if all ran jobs passed.",
+            "enum": ["success", "failure", "unknown"]
+          },
+          "maturity": {
+            "type": "string",
+            "description": "Maturity tier from config/maturity.json (defaults to prototype).",
+            "enum": ["prototype", "alpha", "beta"]
+          },
+          "jobs": {
             "type": "object",
-            "required": ["_source"],
+            "description": "Per-pill results. compliance aggregates all four compliance workflows (worst wins).",
             "properties": {
-              "_source": {
-                "type": "string",
-                "description": "Indicates whether this entry came from the branch-authoritative record ('branch') or the PR fallback ('pr'). Added by the snapshot step, not present in the raw run record.",
-                "enum": ["branch", "pr"]
-              }
-            }
+              "format":     { "$ref": "#/$defs/jobResult" },
+              "compliance": { "$ref": "#/$defs/jobResult" },
+              "dataset":    { "$ref": "#/$defs/jobResult" },
+              "build":      { "$ref": "#/$defs/jobResult" },
+              "unit-tests": { "$ref": "#/$defs/jobResult" }
+            },
+            "additionalProperties": false
           }
-        ]
+        }
       }
+    }
+  },
+  "$defs": {
+    "jobResult": {
+      "type": "string",
+      "enum": ["success", "failure", "skipped", "cancelled", "unknown"]
     }
   }
 }
+
