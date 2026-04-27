@@ -20,7 +20,7 @@ async function init() {
       return;
     }
 
-    // Failures first, then alphabetical by repo name.
+    // Failures first within each org, then alphabetical by repo name.
     repos.sort((a, b) => {
       const rank = { failure: 0, success: 1 };
       const diff = (rank[a.overall] ?? 2) - (rank[b.overall] ?? 2);
@@ -28,7 +28,17 @@ async function init() {
       return (a.repository || '').localeCompare(b.repository || '');
     });
 
-    fleet.innerHTML = repos.map(renderCard).join('');
+    // Group by org (owner part of "org/repo").
+    const byOrg = new Map();
+    for (const repo of repos) {
+      const org = (repo.repository || '').split('/')[0] || 'unknown';
+      if (!byOrg.has(org)) byOrg.set(org, []);
+      byOrg.get(org).push(repo);
+    }
+
+    fleet.innerHTML = Array.from(byOrg.entries())
+      .map(([org, orgRepos]) => renderOrgGroup(org, orgRepos))
+      .join('');
     setupPillHovers();
 
   } catch (err) {

@@ -242,6 +242,75 @@ a.pill:hover { opacity: 0.8; }
   border-color: #54aeff66;
 }
 
+/* ── Org group (collapsible) ──────────────────────────────────────── */
+.org-group {
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.org-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.org-header::-webkit-details-marker { display: none; }
+
+.org-header a {
+  color: var(--color-text);
+  text-decoration: none;
+  flex: 1;
+}
+.org-header a:hover { text-decoration: underline; }
+
+.org-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%236e7781' d='M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.15s ease;
+}
+
+details[open] .org-chevron { transform: rotate(0deg); }
+.org-group:not([open]) .org-chevron { transform: rotate(-90deg); }
+
+.org-header.org-failing { border-left: 3px solid var(--color-failure); }
+.org-header.org-passing { border-left: 3px solid var(--color-success); }
+
+.org-count {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.org-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.org-cards .card {
+  border-radius: 0;
+  border-left-width: 4px;
+  border-top: none;
+  border-right: none;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.org-cards .card:last-child { border-bottom: none; }
+
 /* ── Empty / error states ─────────────────────────────────────────── */
 .state-message {
   text-align: center;

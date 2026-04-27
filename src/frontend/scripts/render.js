@@ -2,6 +2,28 @@
 // Depends on: utils.js (must be loaded first).
 
 /**
+ * Renders a collapsible org group containing repo cards.
+ * @param {string} org      - The GitHub org/owner name.
+ * @param {Array}  repos    - Fleet entries belonging to this org.
+ * @returns {string} HTML string for the group.
+ */
+function renderOrgGroup(org, repos) {
+  const anyFailing = repos.some(r => r.overall === 'failure');
+  const allPassing = repos.every(r => r.overall === 'success');
+  const statusCls  = anyFailing ? 'org-failing' : allPassing ? 'org-passing' : '';
+  const cards      = repos.map(renderCard).join('');
+  return `
+    <details class="org-group" open>
+      <summary class="org-header ${statusCls}">
+        <span class="org-chevron"></span>
+        <a href="https://github.com/${org}" target="_blank" rel="noopener noreferrer">${org}</a>
+        <span class="org-count">${repos.length} repo${repos.length !== 1 ? 's' : ''}</span>
+      </summary>
+      <div class="org-cards">${cards}</div>
+    </details>`;
+}
+
+/**
  * Renders a single repo health card as an HTML string.
  * @param {Object} repo - A fleet entry from fleet.json (augmented with _source).
  * @returns {string} HTML string for the card.
