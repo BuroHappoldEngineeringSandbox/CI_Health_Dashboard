@@ -43,13 +43,12 @@ function renderBranchPills(jobs, repoRunUrl) {
     const result  = (entry && typeof entry === 'object') ? entry.status : (entry || 'unknown');
     const ts      = (entry && typeof entry === 'object') ? entry.timestamp : null;
     const cls     = pillClass(result);
-    const label   = ts ? `<span class="pill-time">${relativeTime(ts)}</span>` : '';
-    const wrap    = ts ? `data-timestamp="${ts}"` : '';
+    const tsAttrs = ts ? `data-timestamp="${ts}" data-tooltip="${relativeTime(ts)}"` : '';
     const pillUrl = (entry && entry.run_url) ? entry.run_url : repoRunUrl;
     if (pillUrl) {
-      return `<span class="pill-wrap" ${wrap}><a class="pill ${cls}" href="${pillUrl}" target="_blank" rel="noopener noreferrer">${job}</a>${label}</span>`;
+      return `<a class="pill ${cls}" href="${pillUrl}" ${tsAttrs} target="_blank" rel="noopener noreferrer">${job}</a>`;
     }
-    return `<span class="pill-wrap" ${wrap}><span class="pill ${cls}">${job}</span>${label}</span>`;
+    return `<span class="pill ${cls}" ${tsAttrs}>${job}</span>`;
   }).join('');
 }
 
