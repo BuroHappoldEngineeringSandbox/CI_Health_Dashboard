@@ -1,9 +1,4 @@
-# Enforce LF line endings for files that run on Linux (GitHub Actions runners).
-*.sh        text eol=lf
-*.yml       text eol=lf
-*.yaml      text eol=lf
-*.json      text eol=lf
-*.js        text eol=lf
-*.css       text eol=lf
-*.html      text eol=lf
-*.md        text eol=lf
+# Prevent git from converting line endings in any text file.
+# Files are stored with whatever bytes are on disk (LF).
+# Use -text so git never normalises EOLs, preserving exact bytes.
+*           -text
