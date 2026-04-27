@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-04-27T09:47:53Z",
+  "latest": {
+    "repository": "BuroHappoldEngineeringSandbox/BHoM",
+    "ref": "main",
+    "sha": "142fab3cba20ecf8f78cef4f925bfa9c5da2aa8c",
+    "pr_number": "",
+    "run_url": "",
+    "timestamp": "",
+    "overall": "unknown",
+    "maturity": "beta",
+    "jobs": {}
+  }
+}

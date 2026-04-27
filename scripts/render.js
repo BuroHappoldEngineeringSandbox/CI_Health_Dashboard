@@ -1,17 +1,13 @@
 // Rendering functions — build HTML strings from data objects.
 // Depends on: utils.js (must be loaded first).
 
-// Fixed job display order — columns are always consistent across cards regardless
-// of the order fields appear in the JSON payload.
-const JOB_ORDER = ['format', 'compliance', 'dataset', 'build', 'unit-tests'];
-
 /**
  * Renders a single repo health card as an HTML string.
  * @param {Object} repo - A fleet entry from fleet.json (augmented with _source).
  * @returns {string} HTML string for the card.
  */
 function renderCard(repo) {
-  const pills = JOB_ORDER.map(job => {
+  const pills = Object.keys(repo.jobs || {}).sort().map(job => {
     const entry  = (repo.jobs || {})[job];
     // Support both new {status, timestamp} shape and legacy bare string.
     const result = (entry && typeof entry === 'object') ? entry.status : (entry || 'unknown');
@@ -37,9 +33,11 @@ function renderCard(repo) {
     ? `<span class="source-label">${repo.ref}</span>`
     : '';
 
-  const runLink = repo.run_url
-    ? `<a href="${repo.run_url}" target="_blank" rel="noopener noreferrer">view run ↗</a>`
-    : '';
+  const runLink = repo.pr_number
+    ? `<a href="https://github.com/${repo.repository}/pull/${repo.pr_number}" target="_blank" rel="noopener noreferrer">view PR ↗</a>`
+    : repo.run_url
+      ? `<a href="${repo.run_url}" target="_blank" rel="noopener noreferrer">view run ↗</a>`
+      : '';
 
   return `
     <div class="card ${statusClass(repo.overall)}">

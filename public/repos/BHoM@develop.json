@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-04-27T09:47:53Z",
+  "latest": {
+    "repository": "BuroHappoldEngineeringSandbox/BHoM",
+    "ref": "develop",
+    "sha": "1bd4b587efb20a5cecff5b491fcb6814d1518267",
+    "pr_number": "8",
+    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM/pull/8",
+    "timestamp": "2026-04-26T22:49:18Z",
+    "overall": "failure",
+    "maturity": "beta",
+    "jobs": {
+      "emit": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:49:18Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM/actions/runs/24968963146/job/73108738530"
+      },
+      "compliance": {
+        "status": "failure",
+        "timestamp": "2026-04-26T22:49:10Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM/actions/runs/24968963146/job/73108522251"
+      },
+      "build": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:47:01Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM/actions/runs/24968963148/job/73108522270"
+      },
+      "unit-tests": {
+        "status": "failure",
+        "timestamp": "2026-04-26T22:47:06Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM/actions/runs/24968963149/job/73108522242"
+      },
+      "format": {
+        "status": "success",
+        "timestamp": "2026-04-26T22:45:21Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM/actions/runs/24968963147/job/73108522235"
+      }
+    }
+  }
+}
