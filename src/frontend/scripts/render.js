@@ -17,12 +17,15 @@ function renderCard(repo) {
     const result = (entry && typeof entry === 'object') ? entry.status : (entry || 'unknown');
     const ts     = (entry && typeof entry === 'object') ? entry.timestamp : null;
     const cls    = pillClass(result);
-    const label  = ts ? `<span class="pill-time">${relativeTime(ts)}</span>` : '';
+    const label  = ts
+      ? `<span class="pill-time">${relativeTime(ts)}</span>`
+      : '';
+    const wrap    = ts ? `data-timestamp="${ts}"` : '';
     // All pills link to the run when a run_url is available.
     if (repo.run_url) {
-      return `<span class="pill-wrap"><a class="pill ${cls}" href="${repo.run_url}" target="_blank" rel="noopener noreferrer">${job}</a>${label}</span>`;
+      return `<span class="pill-wrap" ${wrap}><a class="pill ${cls}" href="${repo.run_url}" target="_blank" rel="noopener noreferrer">${job}</a>${label}</span>`;
     }
-    return `<span class="pill-wrap"><span class="pill ${cls}">${job}</span>${label}</span>`;
+    return `<span class="pill-wrap" ${wrap}><span class="pill ${cls}">${job}</span>${label}</span>`;
   }).join('');
 
   const badge = repo.maturity

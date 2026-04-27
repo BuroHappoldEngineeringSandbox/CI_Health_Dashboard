@@ -29,6 +29,7 @@ async function init() {
     });
 
     fleet.innerHTML = repos.map(renderCard).join('');
+    setupPillHovers();
 
   } catch (err) {
     fleet.innerHTML = `
