@@ -37,9 +37,11 @@ function renderCard(repo) {
     ? `<span class="source-label">${repo.ref}</span>`
     : '';
 
-  const runLink = repo.run_url
-    ? `<a href="${repo.run_url}" target="_blank" rel="noopener noreferrer">view run ↗</a>`
-    : '';
+  const runLink = repo.pr_number
+    ? `<a href="https://github.com/${repo.repository}/pull/${repo.pr_number}" target="_blank" rel="noopener noreferrer">view PR ↗</a>`
+    : repo.run_url
+      ? `<a href="${repo.run_url}" target="_blank" rel="noopener noreferrer">view run ↗</a>`
+      : '';
 
   return `
     <div class="card ${statusClass(repo.overall)}">
