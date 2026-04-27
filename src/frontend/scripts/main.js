@@ -23,7 +23,7 @@ async function init() {
     // Failures first within each org, then alphabetical by repo name.
     repos.sort((a, b) => {
       const rank = { failure: 0, success: 1 };
-      const diff = (rank[a.overall] ?? 2) - (rank[b.overall] ?? 2);
+      const diff = (rank[repoOverall(a)] ?? 2) - (rank[repoOverall(b)] ?? 2);
       if (diff !== 0) return diff;
       return (a.repository || '').localeCompare(b.repository || '');
     });

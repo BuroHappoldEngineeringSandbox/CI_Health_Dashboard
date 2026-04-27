@@ -255,7 +255,24 @@ for REPO in $REPOS; do
   done
 done
 
-REPOS_JSON=$(printf '%s\n' "${FLEET_ENTRIES[@]}" | jq -s 'sort_by(.repository, .ref)')
+REPOS_JSON=$(printf '%s\n' "${FLEET_ENTRIES[@]}" | jq -s '
+  group_by(.repository)
+  | map({
+      repository: .[0].repository,
+      maturity:   .[0].maturity,
+      branches: (
+        map({ key: .ref, value: {
+          sha:       .sha,
+          pr_number: .pr_number,
+          run_url:   .run_url,
+          timestamp: .timestamp,
+          overall:   .overall,
+          jobs:      .jobs
+        }}) | from_entries
+      )
+    })
+  | sort_by(.repository)
+')
 
 jq -n \
   --arg    generated_at "$GENERATED_AT" \
@@ -271,15 +288,11 @@ echo "::notice::Fleet snapshot: ${#FLEET_ENTRIES[@]} entries built."
 
 for REPO in $REPOS; do
   REPO_NAME="${REPO##*/}"
-  for BRANCH in $BRANCHES; do
-    ENTRY=$(echo "$REPOS_JSON" | jq -c \
-      --arg r "$REPO" --arg b "$BRANCH" \
-      '.[] | select(.repository == $r and .ref == $b)')
-    [ -z "$ENTRY" ] && continue
-    jq -n \
-      --arg    generated_at "$GENERATED_AT" \
-      --argjson entry        "$ENTRY" \
-      '{generated_at: $generated_at, latest: $entry}' \
-      > "gh-pages/public/repos/${REPO_NAME}@${BRANCH}.json"
-  done
+  ENTRY=$(echo "$REPOS_JSON" | jq -c --arg r "$REPO" '.[] | select(.repository == $r)')
+  [ -z "$ENTRY" ] && continue
+  jq -n \
+    --arg    generated_at "$GENERATED_AT" \
+    --argjson entry        "$ENTRY" \
+    '{generated_at: $generated_at, latest: $entry}' \
+    > "gh-pages/public/repos/${REPO_NAME}.json"
 done
