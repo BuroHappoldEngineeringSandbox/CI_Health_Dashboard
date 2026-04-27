@@ -1,271 +1,285 @@
 #!/usr/bin/env bash
-# build-fleet.sh — aggregates per-workflow health records into fleet.json and
-# per-repo summaries for the CI Health Dashboard.
+# build-fleet.sh -- builds fleet.json by querying the GitHub Check Runs API for
+# each tracked repo+branch pair defined in config/repos.json.
 #
-# Input (on the dashboard-data branch):
-#   data/latest/{repo}/{workflow}.json  — latest per-workflow record for each repo
-#   data/runs/{repo}/{YYYY}/{MM}/       — full run history per repo
-#   (working dir must contain dashboard-data/ and gh-pages/ subdirs)
+# For each repo+branch:
+#   1. Finds the most recently updated open PR targeting that branch.
+#   2. Falls back to the branch HEAD commit if no open PR exists.
+#   3. Fetches all completed check runs for that commit SHA.
+#   4. Derives pill keys dynamically from check run names (job part after " / ").
+#      Check runs sharing the same pill key are merged (worst status wins).
+#   5. Emits one fleet entry per repo+branch.
 #
-# Maturity tiers are read from GitHub Custom Properties (org-level property named
-# "maturity"). Repos without the property set default to "prototype".
-# Requires GH_TOKEN env var with org custom property read access.
+# Maturity is read from the GitHub org custom property named "maturity".
 #
-# Outputs written to gh-pages/public/:
-#   fleet.json              — fleet-wide aggregated status, all known repos
-#   repos/{repo}.json       — per-repo summary + last 30 run records
+# Requires: GH_TOKEN with checks:read, pull_requests:read on all tracked repos,
+#           and org custom properties read access (for maturity lookup).
 #
-# Workflow → pill mapping:
-#   ci-format                                         → format
-#   ci-{code,copyright,documentation,project}-compliance → compliance (worst wins)
-#   ci-dataset-compliance                             → dataset
-#   ci-build                                          → build
-#   ci-unit-tests                                     → unit-tests
-#
-# Status precedence (worst wins): failure > cancelled > skipped > success > unknown
+# Input:  source/config/repos.json
+# Output: gh-pages/public/fleet.json
+#         gh-pages/public/repos/{name}@{branch}.json
 
 set -euo pipefail
 
 GENERATED_AT="${GENERATED_AT:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
-mkdir -p gh-pages/public/repos
-
-LATEST_DIR="dashboard-data/data/latest"
-RUNS_BASE="dashboard-data/data/runs"
+REPOS_CONFIG="source/config/repos.json"
 ORG="BuroHappoldEngineeringSandbox"
 
-# ── Helpers ─────────────────────────────────────────────────────────────────
+mkdir -p gh-pages/public/repos
 
-# Map a workflow filename (without .json) to a pill key.
-workflow_to_pill() {
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+# Map a GitHub check run conclusion to a dashboard status string.
+conclusion_to_status() {
   case "$1" in
-    ci-format)                   echo "format" ;;
-    ci-code-compliance|\
-    ci-copyright-compliance|\
-    ci-documentation-compliance|\
-    ci-project-compliance)       echo "compliance" ;;
-    ci-dataset-compliance)       echo "dataset" ;;
-    ci-build)                    echo "build" ;;
-    ci-unit-tests)               echo "unit-tests" ;;
-    *)                           echo "" ;;
+    success)                                          echo "success" ;;
+    failure|timed_out|action_required|stale)          echo "failure" ;;
+    cancelled)                                        echo "cancelled" ;;
+    skipped|neutral)                                  echo "skipped" ;;
+    *)                                                echo "unknown" ;;
   esac
 }
 
 # Return the worse of two status strings.
-# Precedence: failure > cancelled > skipped > success > (anything else = unknown)
+# Precedence: failure > cancelled > skipped > success > unknown
 worse_status() {
   local a="$1" b="$2"
   for s in failure cancelled skipped success; do
-    if [ "$a" = "$s" ] || [ "$b" = "$s" ]; then echo "$s"; return; fi
+    [[ "$a" == "$s" || "$b" == "$s" ]] && echo "$s" && return
   done
   echo "${a:-unknown}"
 }
 
-# Derive overall from a jobs JSON object (jobs values are now {status, timestamp} objects).
-# failure if any job failed/cancelled; success if all are success; otherwise unknown.
+# Derive overall status from a jobs JSON object (values are {status,...} objects).
 derive_overall() {
-  local jobs_json="$1"
-  if echo "$jobs_json" | jq -e 'to_entries[] | select(.value.status == "failure")' > /dev/null 2>&1; then
-    echo "failure"; return
-  fi
-  if echo "$jobs_json" | jq -e 'to_entries[] | select(.value.status == "cancelled")' > /dev/null 2>&1; then
-    echo "failure"; return
-  fi
-  if echo "$jobs_json" | jq -e '[to_entries[] | .value.status] | all(. == "success")' | grep -q true; then
-    echo "success"; return
-  fi
-  echo "unknown"
+  local jobs_json="$1" s overall="unknown"
+  while IFS= read -r s; do
+    case "$s" in
+      failure|cancelled) echo "failure"; return ;;
+      success)           overall="success" ;;
+    esac
+  done < <(echo "$jobs_json" | jq -r '[to_entries[] | .value.status] | .[]')
+  echo "$overall"
 }
 
-# Fetch all custom property values for the org in one paginated bulk call.
-# Builds a JSON object: { "org/repo": "tier", ... } stored in MATURITY_MAP.
+# Bulk-fetch org custom properties and build MATURITY_MAP: {"org/repo": "tier"}.
 load_maturity_map() {
   MATURITY_MAP='{}'
   if [ -z "${GH_TOKEN:-}" ]; then
-    echo "::warning::GH_TOKEN not set — maturity will default to 'prototype' for all repos."
+    echo "::warning::GH_TOKEN not set -- maturity will default to 'prototype'."
     return
   fi
-
-  local page=1 per_page=100 batch
+  local page=1 batch
   while true; do
     batch=$(curl -fsSL \
       -H "Accept: application/vnd.github+json" \
       -H "Authorization: Bearer $GH_TOKEN" \
       -H "X-GitHub-Api-Version: 2022-11-28" \
-      "https://api.github.com/orgs/${ORG}/properties/values?per_page=${per_page}&page=${page}" \
+      "https://api.github.com/orgs/${ORG}/properties/values?per_page=100&page=${page}" \
       2>/dev/null || echo '[]')
-
-    # Stop if no more results.
     [ "$(echo "$batch" | jq 'length')" -eq 0 ] && break
-
-    # Extract repos that have a "maturity" property and merge into MATURITY_MAP.
-    MATURITY_MAP=$(echo "$MATURITY_MAP" \
-      "$batch" \
-      | jq -s '
-          .[0] as $map |
-          .[1]
-          | map({
-              key: .repository_full_name,
-              value: (.properties[] | select(.property_name == "maturity") | .value) // empty
-            })
-          | from_entries
-          | $map + .
-        ')
-
+    MATURITY_MAP=$(printf '%s\n%s' "$MATURITY_MAP" "$batch" | jq -s '
+        .[0] as $map | .[1]
+        | map({
+            key:   .repository_full_name,
+            value: (
+              (.properties[] | select(.property_name == "maturity") | .value)
+              // empty
+            )
+          })
+        | from_entries
+        | $map + .')
     (( page++ ))
   done
 }
 
-# Look up maturity for an org/repo string from the pre-loaded MATURITY_MAP.
 get_maturity() {
-  local repository="$1"
-  echo "$MATURITY_MAP" | jq -r --arg r "$repository" '.[$r] // "prototype"'
+  echo "$MATURITY_MAP" | jq -r --arg r "$1" '.[$r] // "prototype"'
 }
 
-# ── Discover repos ───────────────────────────────────────────────────────────
+# Fetch the most recently updated open PR targeting $2 in repo $1.
+# Outputs compact JSON {number, sha} or nothing if no open PR found.
+get_latest_pr() {
+  local repo="$1" branch="$2"
+  curl -fsSL \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $GH_TOKEN" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${repo}/pulls?state=open&base=${branch}&sort=updated&direction=desc&per_page=1" \
+    2>/dev/null \
+    | jq -c 'if length > 0 then .[0] | {number: .number, sha: .head.sha} else empty end' \
+    || true
+}
 
-ALL_REPOS=()
-if [ -d "$LATEST_DIR" ]; then
-  while IFS= read -r -d '' dir; do
-    ALL_REPOS+=("$(basename "$dir")")
-  done < <(find "$LATEST_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
-fi
+# Fetch the latest commit SHA on branch $2 in repo $1 (fallback, no open PR).
+get_branch_sha() {
+  local repo="$1" branch="$2"
+  curl -fsSL \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $GH_TOKEN" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${repo}/commits/${branch}?per_page=1" \
+    2>/dev/null | jq -r '.sha // empty' || true
+}
 
-if [ ${#ALL_REPOS[@]} -eq 0 ]; then
-  echo "::notice::No repos found in data/latest/ — writing empty fleet."
-  jq -n --arg g "$GENERATED_AT" '{generated_at: $g, repos: []}' > gh-pages/public/fleet.json
-  exit 0
-fi
-# Load maturity from GitHub Custom Properties (one bulk API call for the whole org).
+# Fetch all completed check runs for commit $2 in repo $1 (paginated).
+get_check_runs() {
+  local repo="$1" sha="$2" page=1 all='[]' batch
+  while true; do
+    batch=$(curl -fsSL \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Bearer $GH_TOKEN" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${repo}/commits/${sha}/check-runs?per_page=100&page=${page}" \
+      2>/dev/null \
+      | jq '[.check_runs[] | select(.status == "completed")]' \
+      || echo '[]')
+    [ "$(echo "$batch" | jq 'length')" -eq 0 ] && break
+    all=$(printf '%s\n%s' "$all" "$batch" | jq -s '.[0] + .[1]')
+    (( page++ ))
+  done
+  echo "$all"
+}
+
+# Derive a short, stable pill key from a check run name.
+# "CI Build / build"  -> "build"
+# "some-check"        -> "some-check"
+pill_key() {
+  local name="$1"
+  if [[ "$name" == *" / "* ]]; then
+    echo "${name##* / }" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g; s/--*/-/g; s/^-//; s/-$//'
+  else
+    echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g; s/--*/-/g; s/^-//; s/-$//'
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
 load_maturity_map
-# ── Build fleet entries ──────────────────────────────────────────────────────
+
+BRANCHES=$(jq -r '.branches[]' "$REPOS_CONFIG")
+REPOS=$(jq -r '.repos[]'       "$REPOS_CONFIG")
 
 FLEET_ENTRIES=()
 
-for REPO in "${ALL_REPOS[@]}"; do
-  REPO_DIR="${LATEST_DIR}/${REPO}"
-  [ -d "$REPO_DIR" ] || continue
+for REPO in $REPOS; do
+  for BRANCH in $BRANCHES; do
+    echo "Processing ${REPO}@${BRANCH}..."
 
-  jobs_json='{}'
-  latest_timestamp=""
-  latest_run_url=""
-  latest_ref=""
-  latest_sha=""
-  latest_trigger=""
-  latest_pr_number=""
-  repository=""
+    # Prefer the latest open PR targeting this branch; fall back to branch HEAD.
+    PR_INFO=$(get_latest_pr "$REPO" "$BRANCH")
+    if [ -n "$PR_INFO" ]; then
+      SHA=$(echo "$PR_INFO"       | jq -r '.sha')
+      PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number | tostring')
+    else
+      SHA=$(get_branch_sha "$REPO" "$BRANCH")
+      PR_NUMBER=""
+    fi
 
-  # Read each workflow file and accumulate job results.
-  while IFS= read -r -d '' wf_file; do
-    wf_name=$(basename "$wf_file" .json)
-    pill=$(workflow_to_pill "$wf_name")
-    [ -z "$pill" ] && continue
+    if [ -z "${SHA:-}" ]; then
+      echo "::warning::Cannot resolve SHA for ${REPO}@${BRANCH} -- skipping."
+      continue
+    fi
 
-    record=$(jq '.' "$wf_file")
-    status=$(echo "$record"  | jq -r '.status // "unknown"')
-    ts=$(echo "$record"      | jq -r '.timestamp // ""')
-    run_url=$(echo "$record" | jq -r '.run_url // ""')
-    ref=$(echo "$record"     | jq -r '.ref // ""')
-    sha=$(echo "$record"     | jq -r '.sha // ""')
-    trigger=$(echo "$record" | jq -r '.trigger // ""')
-    pr_num=$(echo "$record"  | jq -r '.pr_number // ""')
-    repo_full=$(echo "$record" | jq -r '.repository // ""')
+    CHECK_RUNS=$(get_check_runs "$REPO" "$SHA")
 
-    # For compliance: aggregate multiple workflows into one pill (worst status wins).
-    # Preserve the timestamp of the most recently run compliance workflow.
-    if [ "$pill" = "compliance" ]; then
-      existing_status=$(echo "$jobs_json" | jq -r '.compliance.status // "unknown"')
-      existing_ts=$(echo "$jobs_json"     | jq -r '.compliance.timestamp // ""')
-      merged=$(worse_status "$existing_status" "$status")
-      # Keep whichever timestamp is more recent.
-      if [[ "$ts" > "$existing_ts" ]]; then
-        merged_ts="$ts"
-        merged_url="$run_url"
+    if [ "$(echo "$CHECK_RUNS" | jq 'length')" -eq 0 ]; then
+      echo "::notice::No completed check runs for ${REPO}@${BRANCH} (${SHA:0:7})."
+    fi
+
+    jobs_json='{}'
+
+    while IFS= read -r run; do
+      name=$(echo "$run"       | jq -r '.name        // ""')
+      conclusion=$(echo "$run" | jq -r '.conclusion  // ""')
+      completed=$(echo "$run"  | jq -r '.completed_at // ""')
+      html_url=$(echo "$run"   | jq -r '.html_url    // ""')
+
+      [ -z "$name" ] && continue
+
+      pill=$(pill_key "$name")
+      [ -z "$pill" ] && continue
+
+      status=$(conclusion_to_status "$conclusion")
+
+      existing_status=$(echo "$jobs_json" | jq -r --arg k "$pill" '.[$k].status    // "unknown"')
+      existing_ts=$(echo "$jobs_json"     | jq -r --arg k "$pill" '.[$k].timestamp // ""')
+      merged_status=$(worse_status "$existing_status" "$status")
+
+      if [[ "$completed" > "$existing_ts" ]]; then
+        merged_ts="$completed"
+        merged_url="$html_url"
       else
         merged_ts="$existing_ts"
-        merged_url=$(echo "$jobs_json" | jq -r '.compliance.run_url // ""')
+        merged_url=$(echo "$jobs_json" | jq -r --arg k "$pill" '.[$k].run_url // ""')
       fi
+
       jobs_json=$(echo "$jobs_json" | jq \
-        --arg s "$merged" --arg t "$merged_ts" --arg u "$merged_url" \
-        '.compliance = {status: $s, timestamp: $t, run_url: $u}')
-    else
-      jobs_json=$(echo "$jobs_json" | jq \
-        --arg k "$pill" --arg s "$status" --arg t "$ts" --arg u "$run_url" \
+        --arg k "$pill" --arg s "$merged_status" --arg t "$merged_ts" --arg u "$merged_url" \
         '.[$k] = {status: $s, timestamp: $t, run_url: $u}')
-    fi
 
-    # Track the most recent record's metadata for the card header.
-    if [ -z "$latest_timestamp" ] || [[ "$ts" > "$latest_timestamp" ]]; then
-      latest_timestamp="$ts"
-      latest_run_url="$run_url"
-      latest_ref="$ref"
-      latest_sha="$sha"
-      latest_trigger="$trigger"
-      latest_pr_number="$pr_num"
-      repository="$repo_full"
-    fi
-  done < <(find "$REPO_DIR" -name '*.json' -type f -print0 | sort -z)
+    done < <(echo "$CHECK_RUNS" | jq -c '.[]')
 
-  [ -z "$repository" ] && repository="unknown/${REPO}"
+    latest_ts=$(echo "$CHECK_RUNS" | jq -r '[.[].completed_at | select(. != null)] | sort | last // ""')
+    overall=$(derive_overall "$jobs_json")
+    maturity=$(get_maturity "$REPO")
 
-  overall=$(derive_overall "$jobs_json")
-  maturity=$(get_maturity "$repository")
+    pr_url=""
+    [ -n "$PR_NUMBER" ] && pr_url="https://github.com/${REPO}/pull/${PR_NUMBER}"
 
-  FLEET_ENTRIES+=("$(jq -n \
-    --arg  repository  "$repository" \
-    --arg  ref         "$latest_ref" \
-    --arg  sha         "$latest_sha" \
-    --arg  trigger     "$latest_trigger" \
-    --arg  pr_number   "$latest_pr_number" \
-    --arg  run_url     "$latest_run_url" \
-    --arg  timestamp   "$latest_timestamp" \
-    --arg  overall     "$overall" \
-    --arg  maturity    "$maturity" \
-    --argjson jobs     "$jobs_json" \
-    '{
-      repository: $repository,
-      ref:        $ref,
-      sha:        $sha,
-      trigger:    $trigger,
-      pr_number:  $pr_number,
-      run_url:    $run_url,
-      timestamp:  $timestamp,
-      overall:    $overall,
-      maturity:   $maturity,
-      jobs:       $jobs
-    }')")
+    FLEET_ENTRIES+=("$(jq -n \
+      --arg  repository "$REPO" \
+      --arg  ref        "$BRANCH" \
+      --arg  sha        "$SHA" \
+      --arg  pr_number  "$PR_NUMBER" \
+      --arg  run_url    "$pr_url" \
+      --arg  timestamp  "$latest_ts" \
+      --arg  overall    "$overall" \
+      --arg  maturity   "$maturity" \
+      --argjson jobs    "$jobs_json" \
+      '{
+        repository: $repository,
+        ref:        $ref,
+        sha:        $sha,
+        pr_number:  $pr_number,
+        run_url:    $run_url,
+        timestamp:  $timestamp,
+        overall:    $overall,
+        maturity:   $maturity,
+        jobs:       $jobs
+      }')")
+  done
 done
 
-REPOS_JSON=$(printf '%s\n' "${FLEET_ENTRIES[@]}" | jq -s 'sort_by(.repository)')
+REPOS_JSON=$(printf '%s\n' "${FLEET_ENTRIES[@]}" | jq -s 'sort_by(.repository, .ref)')
 
 jq -n \
-  --arg generated_at "$GENERATED_AT" \
-  --argjson repos     "$REPOS_JSON" \
+  --arg    generated_at "$GENERATED_AT" \
+  --argjson repos        "$REPOS_JSON" \
   '{generated_at: $generated_at, repos: $repos}' \
   > gh-pages/public/fleet.json
 
-echo "::notice::Fleet snapshot: ${#FLEET_ENTRIES[@]} repo(s)."
+echo "::notice::Fleet snapshot: ${#FLEET_ENTRIES[@]} entries built."
 
-# ── Per-repo summaries ───────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Per-repo summaries
+# ---------------------------------------------------------------------------
 
-for REPO in "${ALL_REPOS[@]}"; do
-  REPO_DIR="${LATEST_DIR}/${REPO}"
-  [ -d "$REPO_DIR" ] || continue
-
-  # Find the fleet entry for this repo.
-  REPO_ENTRY=$(echo "$REPOS_JSON" | jq --arg r "$REPO" '.[] | select(.repository | endswith("/" + $r))')
-
-  # Last 30 run records (all workflows combined), most-recent first.
-  RECENT_RUNS='[]'
-  if [ -d "${RUNS_BASE}/${REPO}" ]; then
-    RECENT_RUNS=$(find "${RUNS_BASE}/${REPO}" -name '*.json' -type f | \
-      sort -r | head -30 | xargs cat | jq -s 'sort_by(.timestamp) | reverse')
-  fi
-
-  jq -n \
-    --arg  generated_at "$GENERATED_AT" \
-    --argjson entry     "${REPO_ENTRY:-null}" \
-    --argjson recent    "$RECENT_RUNS" \
-    '{generated_at: $generated_at, latest: $entry, recent_runs: $recent}' \
-    > "gh-pages/public/repos/${REPO}.json"
+for REPO in $REPOS; do
+  REPO_NAME="${REPO##*/}"
+  for BRANCH in $BRANCHES; do
+    ENTRY=$(echo "$REPOS_JSON" | jq -c \
+      --arg r "$REPO" --arg b "$BRANCH" \
+      '.[] | select(.repository == $r and .ref == $b)')
+    [ -z "$ENTRY" ] && continue
+    jq -n \
+      --arg    generated_at "$GENERATED_AT" \
+      --argjson entry        "$ENTRY" \
+      '{generated_at: $generated_at, latest: $entry}' \
+      > "gh-pages/public/repos/${REPO_NAME}@${BRANCH}.json"
+  done
 done
-

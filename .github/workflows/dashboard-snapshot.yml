@@ -1,15 +1,21 @@
 name: Dashboard Snapshot
 
-# Rebuilds the public fleet snapshot from the aggregated data on the dashboard-data
-# branch and publishes it to gh-pages. Runs on a schedule and can be triggered
-# manually to force an immediate refresh.
+# Rebuilds the public fleet snapshot by querying the GitHub Check Runs API for
+# each repo+branch pair listed in config/repos.json, then publishes to gh-pages.
+# Runs on a schedule and can be triggered manually.
 #
-# Output: gh-pages/public/fleet.json  — fleet-wide latest status (all repos)
-#         gh-pages/public/repos/*.json — per-repo summary with recent run history
+# Output: gh-pages/public/fleet.json          -- fleet-wide latest status
+#         gh-pages/public/repos/*.json        -- per-repo+branch summaries
+#
+# The GitHub App (BHOM_APP_ID / BHOM_APP_PRIVATE_KEY) must be installed
+# org-wide (or on every repo in config/repos.json) with:
+#   checks: read
+#   pull_requests: read
+#   contents: read  (for org custom properties -- maturity lookup)
 
 on:
   schedule:
-    - cron: '0 7 * * *'  # once daily at 07:00 UTC; trigger manually via workflow_dispatch when needed sooner
+    - cron: '0 7 * * *'  # daily at 07:00 UTC; trigger manually when needed sooner
   workflow_dispatch:
 
 concurrency:
@@ -24,34 +30,35 @@ jobs:
       contents: write  # push to gh-pages branch
 
     steps:
-      # Check out both data branches plus main (source of index.html) into named
-      # subdirectories so we can read from one and write to another without switching.
-      - name: Checkout dashboard-data
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # App token scoped org-wide so the snapshot can read check runs and pull
+      # requests from every tracked repo in config/repos.json.
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
         with:
-          ref: dashboard-data
-          path: dashboard-data
-          fetch-depth: 0  # full history needed for trend queries
+          app-id:      ${{ secrets.BHOM_APP_ID }}
+          private-key: ${{ secrets.BHOM_APP_PRIVATE_KEY }}
+          owner:       BuroHappoldEngineeringSandbox
 
       - name: Checkout gh-pages
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: gh-pages
-          path: gh-pages
+          ref:         gh-pages
+          path:        gh-pages
           fetch-depth: 1
 
-      - name: Checkout source (index.html)
+      - name: Checkout source (scripts + config)
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: main
-          path: source
+          ref:         main
+          path:        source
           fetch-depth: 1
 
       - name: Generate fleet snapshot
         id: generate
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
           bash source/src/snapshot/build-fleet.sh
@@ -61,8 +68,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Copy the full frontend directory from main so gh-pages always serves
-          # the latest HTML, CSS, and JS without a separate deployment step.
           cp source/index.html gh-pages/index.html
           mkdir -p gh-pages/styles gh-pages/scripts
           cp -r source/src/frontend/styles/. gh-pages/styles/
@@ -81,7 +86,7 @@ jobs:
           git add public/ index.html styles/ scripts/
 
           if git diff --cached --quiet; then
-            echo "::notice::Snapshot unchanged — no commit needed."
+            echo "::notice::Snapshot unchanged -- no commit needed."
             exit 0
           fi
 

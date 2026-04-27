@@ -1,0 +1,10 @@
+{
+  "branches": ["main", "develop"],
+  "repos": [
+    "BuroHappoldEngineeringSandbox/BHoM",
+    "BuroHappoldEngineeringSandbox/BHoM_Adapter",
+    "BuroHappoldEngineeringSandbox/BHoM_UI",
+    "BuroHappoldEngineeringSandbox/CSharp_Toolkit",
+    "BuroHappoldEngineeringSandbox/Revit_Toolkit"
+  ]
+}
