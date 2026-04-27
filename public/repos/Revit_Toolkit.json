@@ -1,37 +1,16 @@
 {
-  "generated_at": "2026-04-27T13:30:52Z",
+  "generated_at": "2026-04-27T14:13:15Z",
   "latest": {
     "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
     "maturity": "prototype",
     "branches": {
       "main": {
-        "sha": "b590ad3b3f78021b67f4fbd47d51677fbffe7653",
-        "pr_number": "1",
-        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/pull/1",
-        "timestamp": "2026-04-27T11:42:34Z",
-        "overall": "failure",
-        "jobs": {
-          "compliance": {
-            "status": "failure",
-            "timestamp": "2026-04-27T11:41:32Z",
-            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24992818359/job/73182320434"
-          },
-          "format": {
-            "status": "failure",
-            "timestamp": "2026-04-27T11:39:42Z",
-            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24992818320/job/73182320380"
-          },
-          "unit-tests": {
-            "status": "failure",
-            "timestamp": "2026-04-27T11:41:49Z",
-            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24992818301/job/73182320355"
-          },
-          "build": {
-            "status": "failure",
-            "timestamp": "2026-04-27T11:42:34Z",
-            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24992818302/job/73182320337"
-          }
-        }
+        "sha": "280d5bbf5a52b737b1d78271ce910795cd1e9c1b",
+        "pr_number": "",
+        "run_url": "",
+        "timestamp": "",
+        "overall": "unknown",
+        "jobs": {}
       },
       "develop": {
         "sha": "d149a035ec43fdf02c78985fee881b6b9546b32c",

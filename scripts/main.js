@@ -61,6 +61,7 @@ function setupOrgCollapse() {
 
     details.addEventListener('click', e => {
       if (!e.target.closest('summary')) return;
+      if (e.target.closest('a')) return;  // let link navigate normally
       e.preventDefault();
 
       if (details.open) {
