@@ -258,23 +258,20 @@ a.pill:hover { opacity: 0.8; }
 
 /* ── Org group (collapsible) ──────────────────────────────────────── */
 .org-group {
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
-  overflow: hidden;
+  margin-bottom: 32px;
 }
 
 .org-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 14px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  padding: 8px 0 12px;
   cursor: pointer;
   list-style: none;
   user-select: none;
-  font-size: 13px;
-  font-weight: 600;
+  background: none;
+  border: none;
 }
 
 .org-header::-webkit-details-marker { display: none; }
@@ -282,7 +279,8 @@ a.pill:hover { opacity: 0.8; }
 .org-header a {
   color: var(--color-text);
   text-decoration: none;
-  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
 }
 .org-header a:hover { text-decoration: underline; }
 
@@ -299,8 +297,8 @@ a.pill:hover { opacity: 0.8; }
 details[open] .org-chevron { transform: rotate(0deg); }
 .org-group:not([open]) .org-chevron { transform: rotate(-90deg); }
 
-.org-header.org-failing { border-left: 3px solid var(--color-failure); }
-.org-header.org-passing { border-left: 3px solid var(--color-success); }
+.org-header.org-failing a { color: var(--color-failure); }
+.org-header.org-passing a { color: var(--color-success); }
 
 .org-count {
   font-size: 11px;
@@ -312,18 +310,14 @@ details[open] .org-chevron { transform: rotate(0deg); }
 .org-cards {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
 }
 
 .org-cards .card {
-  border-radius: 0;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
   border-left-width: 4px;
-  border-top: none;
-  border-right: none;
-  border-bottom: 1px solid var(--color-border);
 }
-
-.org-cards .card:last-child { border-bottom: none; }
 
 /* ── Empty / error states ─────────────────────────────────────────── */
 .state-message {
