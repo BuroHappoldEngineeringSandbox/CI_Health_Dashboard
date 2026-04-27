@@ -40,6 +40,7 @@ async function init() {
       .map(([org, orgRepos]) => renderOrgGroup(org, orgRepos))
       .join('');
     setupPillHovers();
+    setupOrgCollapse();
 
   } catch (err) {
     fleet.innerHTML = `
@@ -51,3 +52,36 @@ async function init() {
 }
 
 init();
+
+// Animate org group open/close — native <details> doesn't support CSS transitions.
+function setupOrgCollapse() {
+  document.querySelectorAll('.org-group').forEach(details => {
+    const cards = details.querySelector('.org-cards');
+    if (!cards) return;
+
+    details.addEventListener('click', e => {
+      if (!e.target.closest('summary')) return;
+      e.preventDefault();
+
+      if (details.open) {
+        // Closing: fix height, then animate to 0.
+        cards.style.height = cards.scrollHeight + 'px';
+        cards.offsetHeight; // force reflow
+        cards.style.height = '0';
+        cards.addEventListener('transitionend', () => {
+          details.removeAttribute('open');
+          cards.style.height = '';
+        }, { once: true });
+      } else {
+        // Opening: add open first, animate from 0 to full height.
+        details.setAttribute('open', '');
+        cards.style.height = '0';
+        cards.offsetHeight; // force reflow
+        cards.style.height = cards.scrollHeight + 'px';
+        cards.addEventListener('transitionend', () => {
+          cards.style.height = '';
+        }, { once: true });
+      }
+    });
+  });
+}

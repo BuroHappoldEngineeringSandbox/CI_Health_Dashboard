@@ -277,7 +277,7 @@ a.pill:hover { opacity: 0.8; }
 .org-header::-webkit-details-marker { display: none; }
 
 .org-header a {
-  color: var(--color-text);
+  color: var(--color-text-muted);
   text-decoration: none;
   font-size: 15px;
   font-weight: 600;
@@ -297,9 +297,6 @@ a.pill:hover { opacity: 0.8; }
 details[open] .org-chevron { transform: rotate(0deg); }
 .org-group:not([open]) .org-chevron { transform: rotate(-90deg); }
 
-.org-header.org-failing a { color: var(--color-failure); }
-.org-header.org-passing a { color: var(--color-success); }
-
 .org-count {
   font-size: 11px;
   font-weight: 400;
@@ -311,6 +308,8 @@ details[open] .org-chevron { transform: rotate(0deg); }
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: hidden;
+  transition: height 0.25s ease;
 }
 
 .org-cards .card {
