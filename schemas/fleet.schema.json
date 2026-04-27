@@ -90,6 +90,11 @@
           "type": "string",
           "format": "date-time",
           "description": "Timestamp of the last run for this specific check."
+        },
+        "run_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the specific Actions run for this check."
         }
       },
       "additionalProperties": false

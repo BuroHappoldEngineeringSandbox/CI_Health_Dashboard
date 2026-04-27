@@ -21,9 +21,10 @@ function renderCard(repo) {
       ? `<span class="pill-time">${relativeTime(ts)}</span>`
       : '';
     const wrap    = ts ? `data-timestamp="${ts}"` : '';
-    // All pills link to the run when a run_url is available.
-    if (repo.run_url) {
-      return `<span class="pill-wrap" ${wrap}><a class="pill ${cls}" href="${repo.run_url}" target="_blank" rel="noopener noreferrer">${job}</a>${label}</span>`;
+    const pillUrl = (entry && entry.run_url) ? entry.run_url : repo.run_url;
+    // All pills link to their own specific run when available.
+    if (pillUrl) {
+      return `<span class="pill-wrap" ${wrap}><a class="pill ${cls}" href="${pillUrl}" target="_blank" rel="noopener noreferrer">${job}</a>${label}</span>`;
     }
     return `<span class="pill-wrap" ${wrap}><span class="pill ${cls}">${job}</span>${label}</span>`;
   }).join('');

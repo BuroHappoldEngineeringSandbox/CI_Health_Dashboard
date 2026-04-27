@@ -179,16 +179,18 @@ for REPO in "${ALL_REPOS[@]}"; do
       # Keep whichever timestamp is more recent.
       if [[ "$ts" > "$existing_ts" ]]; then
         merged_ts="$ts"
+        merged_url="$run_url"
       else
         merged_ts="$existing_ts"
+        merged_url=$(echo "$jobs_json" | jq -r '.compliance.run_url // ""')
       fi
       jobs_json=$(echo "$jobs_json" | jq \
-        --arg s "$merged" --arg t "$merged_ts" \
-        '.compliance = {status: $s, timestamp: $t}')
+        --arg s "$merged" --arg t "$merged_ts" --arg u "$merged_url" \
+        '.compliance = {status: $s, timestamp: $t, run_url: $u}')
     else
       jobs_json=$(echo "$jobs_json" | jq \
-        --arg k "$pill" --arg s "$status" --arg t "$ts" \
-        '.[$k] = {status: $s, timestamp: $t}')
+        --arg k "$pill" --arg s "$status" --arg t "$ts" --arg u "$run_url" \
+        '.[$k] = {status: $s, timestamp: $t, run_url: $u}')
     fi
 
     # Track the most recent record's metadata for the card header.
