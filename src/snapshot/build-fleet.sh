@@ -99,17 +99,18 @@ get_maturity() {
   echo "$MATURITY_MAP" | jq -r --arg r "$1" '.[$r] // "prototype"'
 }
 
-# Fetch the most recently updated open PR targeting $2 in repo $1.
-# Outputs compact JSON {number, sha} or nothing if no open PR found.
-get_latest_pr() {
+# Fetch the most recently merged PR targeting $2 in repo $1.
+# Uses head.sha — the feature branch tip CI ran against before merge.
+# Outputs compact JSON {number, sha} or nothing if no merged PR found.
+get_latest_merged_pr() {
   local repo="$1" branch="$2"
   curl -fsSL \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GH_TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
-    "https://api.github.com/repos/${repo}/pulls?state=open&base=${branch}&sort=updated&direction=desc&per_page=1" \
+    "https://api.github.com/repos/${repo}/pulls?state=closed&base=${branch}&sort=updated&direction=desc&per_page=10" \
     2>/dev/null \
-    | jq -c 'if length > 0 then .[0] | {number: .number, sha: .head.sha} else empty end' \
+    | jq -c 'map(select(.merged_at != null)) | if length > 0 then .[0] | {number: .number, sha: .head.sha} else empty end' \
     || true
 }
 
@@ -170,8 +171,9 @@ for REPO in $REPOS; do
   for BRANCH in $BRANCHES; do
     echo "Processing ${REPO}@${BRANCH}..."
 
-    # Prefer the latest open PR targeting this branch; fall back to branch HEAD.
-    PR_INFO=$(get_latest_pr "$REPO" "$BRANCH")
+    # Use the most recently merged PR for branch health signal.
+    # Falls back to branch HEAD SHA if no merged PR exists yet.
+    PR_INFO=$(get_latest_merged_pr "$REPO" "$BRANCH")
     if [ -n "$PR_INFO" ]; then
       SHA=$(echo "$PR_INFO"       | jq -r '.sha')
       PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number | tostring')
