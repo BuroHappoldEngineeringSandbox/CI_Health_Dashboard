@@ -89,10 +89,10 @@ body {
   border-left: 4px solid var(--color-unknown);
   border-radius: var(--border-radius);
   background: var(--color-bg);
-  padding: 10px 14px;
+  padding: 8px 14px 4px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 0;
 }
 
 .card.status-success { border-left-color: var(--color-success); }
@@ -100,13 +100,23 @@ body {
 
 /* ── Card identity ────────────────────────────────────────────────── */
 .card-identity {
-  flex: 1;
-  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 4px 0 6px;
   overflow: hidden;
 }
+
+/* ── Branch row ───────────────────────────────────────────────────── */
+.branch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.branch-row:last-child { padding-bottom: 4px; }
 
 .card-identity a {
   font-weight: 600;
@@ -119,6 +129,10 @@ body {
 }
 
 .card-identity a:hover { text-decoration: underline; }
+
+/* Within a branch row, pills fill available space */
+.branch-row .job-pills { flex: 1; }
+.branch-row .source-label { flex-shrink: 0; width: 56px; }
 
 /* ── Maturity badge ───────────────────────────────────────────────── */
 .badge {

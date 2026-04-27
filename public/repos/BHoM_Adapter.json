@@ -1,283 +1,46 @@
 {
-  "generated_at": "2026-04-27T08:28:36Z",
+  "generated_at": "2026-04-27T12:40:17Z",
   "latest": {
     "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-    "ref": "develop",
-    "sha": "fb61e47485f2419a192352c52f4ced31f1b91695",
-    "trigger": "pull_request",
-    "pr_number": "11",
-    "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963102",
-    "timestamp": "2026-04-26T22:47:27Z",
-    "overall": "failure",
     "maturity": "prototype",
-    "jobs": {
-      "build": {
-        "status": "success",
-        "timestamp": "2026-04-26T22:46:41Z",
-        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963110"
+    "branches": {
+      "main": {
+        "sha": "7a486e4fec771e522c4824d303f6cbed73088431",
+        "pr_number": "1",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/pull/1",
+        "timestamp": "2026-04-27T12:18:01Z",
+        "overall": "failure",
+        "jobs": {
+          "compliance": {
+            "status": "failure",
+            "timestamp": "2026-04-27T12:17:52Z",
+            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24994409625/job/73187571340"
+          },
+          "unit-tests": {
+            "status": "success",
+            "timestamp": "2026-04-27T12:18:01Z",
+            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24994409486/job/73187571167"
+          },
+          "build": {
+            "status": "success",
+            "timestamp": "2026-04-27T12:17:11Z",
+            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24994409496/job/73187571130"
+          },
+          "format": {
+            "status": "failure",
+            "timestamp": "2026-04-27T12:16:03Z",
+            "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24994409490/job/73187571047"
+          }
+        }
       },
-      "compliance": {
-        "status": "success",
-        "timestamp": "2026-04-26T22:47:27Z",
-        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963102"
-      },
-      "dataset": {
-        "status": "success",
-        "timestamp": "2026-04-26T22:45:11Z",
-        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963093"
-      },
-      "format": {
-        "status": "success",
-        "timestamp": "2026-04-26T22:45:18Z",
-        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963098"
-      },
-      "unit-tests": {
-        "status": "failure",
-        "timestamp": "2026-04-26T22:47:07Z",
-        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963094"
+      "develop": {
+        "sha": "bbfcd0dc173d2c14642bb404f4a18c20449e2c46",
+        "pr_number": "",
+        "run_url": "",
+        "timestamp": "",
+        "overall": "unknown",
+        "jobs": {}
       }
     }
-  },
-  "recent_runs": [
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968963102",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963102",
-      "sha": "fb61e47485f2419a192352c52f4ced31f1b91695",
-      "status": "success",
-      "timestamp": "2026-04-26T22:47:27Z",
-      "trigger": "pull_request",
-      "workflow": "ci-documentation-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968963096",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963096",
-      "sha": "fb61e47485f2419a192352c52f4ced31f1b91695",
-      "status": "success",
-      "timestamp": "2026-04-26T22:46:46Z",
-      "trigger": "pull_request",
-      "workflow": "ci-code-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968963100",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963100",
-      "sha": "fb61e47485f2419a192352c52f4ced31f1b91695",
-      "status": "success",
-      "timestamp": "2026-04-26T22:46:44Z",
-      "trigger": "pull_request",
-      "workflow": "ci-copyright-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968963110",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963110",
-      "sha": "fb61e47485f2419a192352c52f4ced31f1b91695",
-      "status": "success",
-      "timestamp": "2026-04-26T22:46:41Z",
-      "trigger": "pull_request",
-      "workflow": "ci-build"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968963095",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963095",
-      "sha": "fb61e47485f2419a192352c52f4ced31f1b91695",
-      "status": "success",
-      "timestamp": "2026-04-26T22:46:34Z",
-      "trigger": "pull_request",
-      "workflow": "ci-project-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968963093",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968963093",
-      "sha": "fb61e47485f2419a192352c52f4ced31f1b91695",
-      "status": "success",
-      "timestamp": "2026-04-26T22:45:11Z",
-      "trigger": "pull_request",
-      "workflow": "ci-dataset-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968540991",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968540991",
-      "sha": "a9d0a6408bf8c72c58be5df2245aaf53b129f1b5",
-      "status": "failure",
-      "timestamp": "2026-04-26T22:24:48Z",
-      "trigger": "pull_request",
-      "workflow": "ci-unit-tests"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968540992",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968540992",
-      "sha": "a9d0a6408bf8c72c58be5df2245aaf53b129f1b5",
-      "status": "success",
-      "timestamp": "2026-04-26T22:24:42Z",
-      "trigger": "pull_request",
-      "workflow": "ci-copyright-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968540995",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968540995",
-      "sha": "a9d0a6408bf8c72c58be5df2245aaf53b129f1b5",
-      "status": "success",
-      "timestamp": "2026-04-26T22:24:26Z",
-      "trigger": "pull_request",
-      "workflow": "ci-project-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968540994",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968540994",
-      "sha": "a9d0a6408bf8c72c58be5df2245aaf53b129f1b5",
-      "status": "success",
-      "timestamp": "2026-04-26T22:24:23Z",
-      "trigger": "pull_request",
-      "workflow": "ci-code-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968540996",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968540996",
-      "sha": "a9d0a6408bf8c72c58be5df2245aaf53b129f1b5",
-      "status": "success",
-      "timestamp": "2026-04-26T22:24:14Z",
-      "trigger": "pull_request",
-      "workflow": "ci-documentation-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968540998",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968540998",
-      "sha": "a9d0a6408bf8c72c58be5df2245aaf53b129f1b5",
-      "status": "success",
-      "timestamp": "2026-04-26T22:24:05Z",
-      "trigger": "pull_request",
-      "workflow": "ci-build"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968541001",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968541001",
-      "sha": "a9d0a6408bf8c72c58be5df2245aaf53b129f1b5",
-      "status": "success",
-      "timestamp": "2026-04-26T22:22:55Z",
-      "trigger": "pull_request",
-      "workflow": "ci-dataset-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968252378",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252378",
-      "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-      "status": "success",
-      "timestamp": "2026-04-26T22:15:50Z",
-      "trigger": "pull_request",
-      "workflow": "ci-copyright-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968252375",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252375",
-      "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-      "status": "failure",
-      "timestamp": "2026-04-26T22:10:36Z",
-      "trigger": "pull_request",
-      "workflow": "ci-unit-tests"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968252376",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252376",
-      "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-      "status": "success",
-      "timestamp": "2026-04-26T22:09:56Z",
-      "trigger": "pull_request",
-      "workflow": "ci-project-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968252370",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252370",
-      "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-      "status": "success",
-      "timestamp": "2026-04-26T22:09:50Z",
-      "trigger": "pull_request",
-      "workflow": "ci-documentation-compliance"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968252374",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252374",
-      "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-      "status": "success",
-      "timestamp": "2026-04-26T22:09:06Z",
-      "trigger": "pull_request",
-      "workflow": "ci-build"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968252371",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252371",
-      "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-      "status": "success",
-      "timestamp": "2026-04-26T22:08:14Z",
-      "trigger": "pull_request",
-      "workflow": "ci-format"
-    },
-    {
-      "pr_number": "11",
-      "ref": "develop",
-      "repository": "BuroHappoldEngineeringSandbox/BHoM_Adapter",
-      "run_id": "24968252377",
-      "run_url": "https://github.com/BuroHappoldEngineeringSandbox/BHoM_Adapter/actions/runs/24968252377",
-      "sha": "abfac2c2bdfc2a6399efe6847b07ffaab4e7ef2d",
-      "status": "success",
-      "timestamp": "2026-04-26T22:07:53Z",
-      "trigger": "pull_request",
-      "workflow": "ci-dataset-compliance"
-    }
-  ]
+  }
 }
