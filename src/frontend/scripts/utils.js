@@ -43,27 +43,25 @@ function formatAbsTime(iso) {
 }
 
 /**
- * Attaches hover behaviour to all .pill-wrap[data-timestamp] elements.
- * On hover: show relative time immediately, switch to absolute after 2s.
+ * Attaches hover behaviour to all .pill[data-timestamp] elements.
+ * On hover: show relative time immediately in tooltip, switch to absolute after 2s.
  * On mouse leave: cancel pending switch, restore relative time.
  */
 function setupPillHovers() {
-  document.querySelectorAll('.pill-wrap[data-timestamp]').forEach(wrap => {
-    const timeEl = wrap.querySelector('.pill-time');
-    if (!timeEl) return;
-    const iso = wrap.dataset.timestamp;
+  document.querySelectorAll('.pill[data-timestamp]').forEach(pill => {
+    const iso = pill.dataset.timestamp;
     let timer = null;
 
-    wrap.addEventListener('mouseenter', () => {
-      timeEl.textContent = relativeTime(iso);
+    pill.addEventListener('mouseenter', () => {
+      pill.dataset.tooltip = relativeTime(iso);
       timer = setTimeout(() => {
-        timeEl.textContent = formatAbsTime(iso);
+        pill.dataset.tooltip = formatAbsTime(iso);
       }, 2000);
     });
 
-    wrap.addEventListener('mouseleave', () => {
+    pill.addEventListener('mouseleave', () => {
       clearTimeout(timer);
-      timeEl.textContent = relativeTime(iso);
+      pill.dataset.tooltip = relativeTime(iso);
     });
   });
 }

@@ -156,28 +156,8 @@ body {
   flex-shrink: 0;
 }
 
-/* Wrapper aligns the pill and its per-check timestamp vertically */
-.pill-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.pill-time {
-  font-size: 9px;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  height: 11px; /* reserve space so layout doesn't shift on hover */
-}
-
-.pill-wrap:hover .pill-time {
-  opacity: 1;
-}
-
 .pill {
+  position: relative;
   display: inline-block;
   font-size: 11px;
   font-weight: 500;
@@ -189,6 +169,29 @@ body {
   min-width: 68px;
   text-align: center;
 }
+
+/* Tooltip */
+.pill[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2328;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 400;
+  font-style: normal;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.pill[data-tooltip]:hover::after { opacity: 1; }
 
 .pill-success {
   color: #1a7f37;
