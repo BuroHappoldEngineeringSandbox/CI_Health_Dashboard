@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-27T07:49:01Z",
+  "generated_at": "2026-04-27T08:28:36Z",
   "latest": {
     "repository": "BuroHappoldEngineeringSandbox/Revit_Toolkit",
     "ref": "develop",
@@ -13,23 +13,28 @@
     "jobs": {
       "build": {
         "status": "failure",
-        "timestamp": "2026-04-26T22:47:14Z"
+        "timestamp": "2026-04-26T22:47:14Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24968963404"
       },
       "compliance": {
         "status": "success",
-        "timestamp": "2026-04-26T22:49:05Z"
+        "timestamp": "2026-04-26T22:49:05Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24968963403"
       },
       "dataset": {
         "status": "success",
-        "timestamp": "2026-04-26T22:45:14Z"
+        "timestamp": "2026-04-26T22:45:14Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24968963409"
       },
       "format": {
         "status": "success",
-        "timestamp": "2026-04-26T22:45:19Z"
+        "timestamp": "2026-04-26T22:45:19Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24968963408"
       },
       "unit-tests": {
         "status": "success",
-        "timestamp": "2026-04-26T22:45:11Z"
+        "timestamp": "2026-04-26T22:45:11Z",
+        "run_url": "https://github.com/BuroHappoldEngineeringSandbox/Revit_Toolkit/actions/runs/24968963406"
       }
     }
   },
