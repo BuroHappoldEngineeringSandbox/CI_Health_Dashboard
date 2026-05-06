@@ -14,8 +14,6 @@ name: Dashboard Snapshot
 #   contents: read  (for org custom properties -- maturity lookup)
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'  # every 30 minutes
   workflow_dispatch:
 
 concurrency:
